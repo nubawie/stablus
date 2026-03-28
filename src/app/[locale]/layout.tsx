@@ -29,8 +29,6 @@ export default async function LocaleLayout({
             gtag('config', 'G-Y395LGPWG');
           `}
         </Script>
-        <link rel="icon" href="/favicon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/favicon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
