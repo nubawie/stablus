@@ -93,11 +93,8 @@ export default function HeroVisual() {
 
       // Theme-aware colors
       const guideStroke = dark ? 'rgba(212,168,67,0.12)' : 'rgba(180,140,50,0.35)';
-      const instFill = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-      const instStroke = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.25)';
-      const instLabel = dark ? 'rgba(255,255,255,0.85)' : '#1a1a1a';
-      const instSub = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.55)';
-      const centerFill = dark ? 'rgba(0,0,0,0.3)' : 'rgba(200,190,170,0.5)';
+      // Institution colors are set inline in the INSTS.forEach block
+      const centerFill = dark ? 'rgba(0,0,0,0.3)' : 'rgba(212,168,67,0.15)';
       const engineText = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.65)';
 
       // Guide lines
@@ -141,11 +138,19 @@ export default function HeroVisual() {
       INSTS.forEach((inst,i)=>{
         const p=getInstPos(i);
         rr(p.x-nw/2,p.y-NH/2,nw,NH,6);
-        ctx!.fillStyle=instFill; ctx!.strokeStyle=instStroke; ctx!.lineWidth=0.8; ctx!.fill(); ctx!.stroke();
-        ctx!.fillStyle=instLabel; ctx!.font='600 14px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
-        ctx!.fillText(inst.n,p.x,p.y-7);
-        ctx!.fillStyle=instSub; ctx!.font='400 11px -apple-system,sans-serif';
-        ctx!.fillText(inst.s,p.x,p.y+9);
+        ctx!.fillStyle= dark ? 'rgba(255,255,255,0.06)' : 'rgba(30,25,20,0.08)';
+        ctx!.strokeStyle= dark ? 'rgba(255,255,255,0.2)' : 'rgba(30,25,20,0.35)';
+        ctx!.lineWidth=1;
+        ctx!.fill();
+        ctx!.stroke();
+        ctx!.fillStyle= dark ? 'rgba(255,255,255,0.85)' : '#1a1209';
+        ctx!.font='600 14px -apple-system,sans-serif';
+        ctx!.textAlign='center';
+        ctx!.textBaseline='middle';
+        ctx!.fillText(inst.n,p.x,p.y-6);
+        ctx!.fillStyle= dark ? 'rgba(255,255,255,0.4)' : 'rgba(30,20,5,0.6)';
+        ctx!.font='400 11px -apple-system,sans-serif';
+        ctx!.fillText(inst.s,p.x,p.y+8);
       });
 
       // Regulator nodes
