@@ -32,11 +32,11 @@ export default function HeroVisual() {
     const particles: { side: string; idx: number; t: number; speed: number; size: number; alpha: number }[] = [];
 
     function NW() { return Math.min(W * 0.22, 158); }
-    function NH() { return 46; }
     function leftX() { return W * 0.16; }
     function rightX() { return W * 0.84; }
     function instSpacing() { return Math.min(72, (H - 80) / INSTS.length); }
     function regSpacing()  { return Math.min(64, (H - 80) / REGS.length); }
+    const NH = 46;
 
     function getInstPos(i: number) {
       return { x: leftX(), y: cy - (INSTS.length-1)*instSpacing()/2 + i*instSpacing() };
@@ -44,8 +44,6 @@ export default function HeroVisual() {
     function getRegPos(i: number) {
       return { x: rightX(), y: cy - (REGS.length-1)*regSpacing()/2 + i*regSpacing() };
     }
-
-    function cpFunc() { return W * 0.22; }
 
     function bezierPt(t:number,x0:number,y0:number,x1:number,y1:number,x2:number,y2:number,x3:number,y3:number) {
       const u=1-t;
@@ -83,23 +81,21 @@ export default function HeroVisual() {
       ctx.clearRect(0,0,W,H);
       aiPulse+=0.02;
 
-      const nw=NW(), nh=NH(), cpx=cpFunc(), CR=Math.min(W*0.09,52);
+      const nw=NW(), cpx=W*0.22, CR=Math.min(W*0.09,52);
 
-      // Guide lines
       INSTS.forEach((_,i)=>{
         const p=getInstPos(i);
         ctx!.beginPath(); ctx!.moveTo(p.x+nw/2,p.y);
         ctx!.bezierCurveTo(cx-cpx,p.y,cx-cpx,cy,cx-CR,cy);
-        ctx!.strokeStyle='rgba(212,168,67,0.07)'; ctx!.lineWidth=1; ctx!.stroke();
+        ctx!.strokeStyle='rgba(212,168,67,0.12)'; ctx!.lineWidth=1; ctx!.stroke();
       });
       REGS.forEach((_,i)=>{
         const p=getRegPos(i);
         ctx!.beginPath(); ctx!.moveTo(cx+CR,cy);
         ctx!.bezierCurveTo(cx+cpx,cy,cx+cpx,p.y,p.x-nw/2,p.y);
-        ctx!.strokeStyle='rgba(212,168,67,0.07)'; ctx!.lineWidth=1; ctx!.stroke();
+        ctx!.strokeStyle='rgba(212,168,67,0.12)'; ctx!.lineWidth=1; ctx!.stroke();
       });
 
-      // Particles
       particles.forEach((p,pi)=>{
         p.t+=p.speed;
         if(p.t>1.05){particles[pi]=spawnParticle();return;}
@@ -122,39 +118,36 @@ export default function HeroVisual() {
         ctx!.fillStyle=`rgba(${r2},${g2},${b2},${a})`; ctx!.fill();
       });
 
-      // Institution nodes
       INSTS.forEach((inst,i)=>{
         const p=getInstPos(i);
-        rr(p.x-nw/2,p.y-nh/2,nw,nh,6);
-        ctx!.fillStyle='rgba(255,255,255,0.04)'; ctx!.strokeStyle='rgba(255,255,255,0.22)'; ctx!.lineWidth=0.8; ctx!.fill(); ctx!.stroke();
+        rr(p.x-nw/2,p.y-NH/2,nw,NH,6);
+        ctx!.fillStyle='rgba(255,255,255,0.06)'; ctx!.strokeStyle='rgba(255,255,255,0.2)'; ctx!.lineWidth=0.8; ctx!.fill(); ctx!.stroke();
         ctx!.fillStyle='rgba(255,255,255,0.85)'; ctx!.font='600 13px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
         ctx!.fillText(inst.n,p.x,p.y-6);
-        ctx!.fillStyle='rgba(255,255,255,0.3)'; ctx!.font='400 10px -apple-system,sans-serif';
+        ctx!.fillStyle='rgba(255,255,255,0.35)'; ctx!.font='400 10px -apple-system,sans-serif';
         ctx!.fillText(inst.s,p.x,p.y+8);
       });
 
-      // Regulator nodes
       REGS.forEach((reg,i)=>{
         const p=getRegPos(i);
-        rr(p.x-nw/2,p.y-nh/2,nw,nh,6);
-        ctx!.fillStyle='rgba(212,168,67,0.08)'; ctx!.strokeStyle='rgba(212,168,67,0.45)'; ctx!.lineWidth=1; ctx!.fill(); ctx!.stroke();
+        rr(p.x-nw/2,p.y-NH/2,nw,NH,6);
+        ctx!.fillStyle='rgba(212,168,67,0.08)'; ctx!.strokeStyle='rgba(212,168,67,0.5)'; ctx!.lineWidth=1; ctx!.fill(); ctx!.stroke();
         ctx!.fillStyle='rgba(212,168,67,1.0)'; ctx!.font='700 14px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
         ctx!.fillText(reg.n,p.x,p.y-6);
-        ctx!.fillStyle='rgba(255,255,255,0.35)'; ctx!.font='400 10px -apple-system,sans-serif';
+        ctx!.fillStyle='rgba(255,255,255,0.4)'; ctx!.font='400 10px -apple-system,sans-serif';
         ctx!.fillText(reg.s,p.x,p.y+8);
       });
 
-      // Center AI node
       const pulse=Math.sin(aiPulse)*0.5+0.5;
       ctx!.beginPath(); ctx!.arc(cx,cy,CR+14+pulse*8,0,Math.PI*2);
       ctx!.strokeStyle=`rgba(212,168,67,${0.05+pulse*0.08})`; ctx!.lineWidth=1; ctx!.stroke();
       ctx!.beginPath(); ctx!.arc(cx,cy,CR+6,0,Math.PI*2);
-      ctx!.strokeStyle='rgba(212,168,67,0.12)'; ctx!.lineWidth=1; ctx!.stroke();
+      ctx!.strokeStyle='rgba(212,168,67,0.15)'; ctx!.lineWidth=1; ctx!.stroke();
       ctx!.beginPath(); ctx!.arc(cx,cy,CR,0,Math.PI*2);
-      ctx!.fillStyle='rgba(10,10,15,0.95)'; ctx!.strokeStyle='rgba(212,168,67,0.85)'; ctx!.lineWidth=2; ctx!.fill(); ctx!.stroke();
+      ctx!.fillStyle='rgba(0,0,0,0.3)'; ctx!.strokeStyle='rgba(212,168,67,0.9)'; ctx!.lineWidth=2; ctx!.fill(); ctx!.stroke();
       ctx!.fillStyle='rgba(212,168,67,0.95)'; ctx!.font=`700 ${Math.round(CR*0.28)}px -apple-system,sans-serif`; ctx!.textAlign='center'; ctx!.textBaseline='middle';
       ctx!.fillText('Stablus',cx,cy-CR*0.15);
-      ctx!.fillStyle='rgba(255,255,255,0.4)'; ctx!.font=`400 ${Math.round(CR*0.21)}px -apple-system,sans-serif`;
+      ctx!.fillStyle='rgba(255,255,255,0.5)'; ctx!.font=`400 ${Math.round(CR*0.21)}px -apple-system,sans-serif`;
       ctx!.fillText('AI Engine',cx,cy+CR*0.22);
 
       animId=requestAnimationFrame(draw);
@@ -178,7 +171,5 @@ export default function HeroVisual() {
     return ()=>{ cancelAnimationFrame(animId); observer.disconnect(); };
   },[]);
 
-  return (
-    <canvas ref={canvasRef} className="hidden md:block w-full h-full" />
-  );
+  return <canvas ref={canvasRef} className="hidden md:block w-full h-full" />;
 }
