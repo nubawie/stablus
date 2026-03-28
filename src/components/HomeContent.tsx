@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
+import HeroVisual from "./HeroVisual";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -121,36 +122,9 @@ export default function HomeContent() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="hidden md:flex justify-center"
+              className="hidden md:block"
             >
-              <svg viewBox="0 0 400 400" className="w-full max-w-[380px]" fill="none">
-                <circle cx="200" cy="80" r="8" style={{ fill: "var(--navy)" }} />
-                <circle cx="100" cy="160" r="8" style={{ fill: "var(--navy)" }} />
-                <circle cx="300" cy="160" r="8" style={{ fill: "var(--navy)" }} />
-                <circle cx="60" cy="260" r="8" style={{ fill: "var(--gold)" }} />
-                <circle cx="160" cy="260" r="8" style={{ fill: "var(--navy)" }} />
-                <circle cx="240" cy="260" r="8" style={{ fill: "var(--navy)" }} />
-                <circle cx="340" cy="260" r="8" style={{ fill: "var(--gold)" }} />
-                <circle cx="120" cy="340" r="8" style={{ fill: "var(--navy)" }} />
-                <circle cx="200" cy="340" r="6" style={{ fill: "var(--gold)" }} />
-                <circle cx="280" cy="340" r="8" style={{ fill: "var(--navy)" }} />
-                <line x1="200" y1="80" x2="100" y2="160" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="200" y1="80" x2="300" y2="160" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="100" y1="160" x2="60" y2="260" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="100" y1="160" x2="160" y2="260" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="300" y1="160" x2="240" y2="260" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="300" y1="160" x2="340" y2="260" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="160" y1="260" x2="240" y2="260" style={{ stroke: "var(--gold)" }} strokeWidth="1.5" strokeOpacity="0.4" />
-                <line x1="60" y1="260" x2="120" y2="340" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="160" y1="260" x2="200" y2="340" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="240" y1="260" x2="200" y2="340" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="340" y1="260" x2="280" y2="340" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="120" y1="340" x2="200" y2="340" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <line x1="200" y1="340" x2="280" y2="340" style={{ stroke: "var(--border)" }} strokeWidth="1.5" />
-                <circle cx="60" cy="260" r="16" style={{ stroke: "var(--gold)" }} strokeWidth="1" strokeOpacity="0.3" />
-                <circle cx="340" cy="260" r="16" style={{ stroke: "var(--gold)" }} strokeWidth="1" strokeOpacity="0.3" />
-                <circle cx="200" cy="340" r="14" style={{ stroke: "var(--gold)" }} strokeWidth="1" strokeOpacity="0.3" />
-              </svg>
+              <HeroVisual />
             </motion.div>
           </div>
         </div>
