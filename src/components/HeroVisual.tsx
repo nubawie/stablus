@@ -14,6 +14,13 @@ export default function HeroVisual() {
     let animId: number;
     let aiPulse = 0;
 
+    const isDark = () => document.documentElement.classList.contains('dark')
+      || window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onSchemeChange = () => { /* canvas redraws on next frame automatically */ };
+    mq.addEventListener('change', onSchemeChange);
+
     const INSTS = [
       { n: 'Central Bank UAE',    s: 'CBUAE Licensed' },
       { n: 'Commercial Bank GCC', s: 'Regional Institution' },
@@ -31,12 +38,12 @@ export default function HeroVisual() {
     const MAX_P = 14;
     const particles: { side: string; idx: number; t: number; speed: number; size: number; alpha: number }[] = [];
 
-    function NW() { return Math.min(W * 0.22, 158); }
+    function NW() { return Math.min(W * 0.28, 190); }
     function leftX() { return W * 0.16; }
     function rightX() { return W * 0.84; }
-    function instSpacing() { return Math.min(72, (H - 80) / INSTS.length); }
-    function regSpacing()  { return Math.min(64, (H - 80) / REGS.length); }
-    const NH = 46;
+    function instSpacing() { return Math.min(82, (H - 60) / INSTS.length); }
+    function regSpacing()  { return Math.min(74, (H - 60) / REGS.length); }
+    const NH = 52;
 
     function getInstPos(i: number) {
       return { x: leftX(), y: cy - (INSTS.length-1)*instSpacing()/2 + i*instSpacing() };
@@ -81,21 +88,33 @@ export default function HeroVisual() {
       ctx.clearRect(0,0,W,H);
       aiPulse+=0.02;
 
+      const dark = isDark();
       const nw=NW(), cpx=W*0.22, CR=Math.min(W*0.09,52);
 
+      // Theme-aware colors
+      const guideStroke = dark ? 'rgba(212,168,67,0.12)' : 'rgba(180,140,50,0.25)';
+      const instFill = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+      const instStroke = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
+      const instLabel = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.8)';
+      const instSub = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.4)';
+      const centerFill = dark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.6)';
+      const engineText = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+
+      // Guide lines
       INSTS.forEach((_,i)=>{
         const p=getInstPos(i);
         ctx!.beginPath(); ctx!.moveTo(p.x+nw/2,p.y);
         ctx!.bezierCurveTo(cx-cpx,p.y,cx-cpx,cy,cx-CR,cy);
-        ctx!.strokeStyle='rgba(212,168,67,0.12)'; ctx!.lineWidth=1; ctx!.stroke();
+        ctx!.strokeStyle=guideStroke; ctx!.lineWidth=1; ctx!.stroke();
       });
       REGS.forEach((_,i)=>{
         const p=getRegPos(i);
         ctx!.beginPath(); ctx!.moveTo(cx+CR,cy);
         ctx!.bezierCurveTo(cx+cpx,cy,cx+cpx,p.y,p.x-nw/2,p.y);
-        ctx!.strokeStyle='rgba(212,168,67,0.12)'; ctx!.lineWidth=1; ctx!.stroke();
+        ctx!.strokeStyle=guideStroke; ctx!.lineWidth=1; ctx!.stroke();
       });
 
+      // Particles
       particles.forEach((p,pi)=>{
         p.t+=p.speed;
         if(p.t>1.05){particles[pi]=spawnParticle();return;}
@@ -118,36 +137,39 @@ export default function HeroVisual() {
         ctx!.fillStyle=`rgba(${r2},${g2},${b2},${a})`; ctx!.fill();
       });
 
+      // Institution nodes
       INSTS.forEach((inst,i)=>{
         const p=getInstPos(i);
         rr(p.x-nw/2,p.y-NH/2,nw,NH,6);
-        ctx!.fillStyle='rgba(255,255,255,0.06)'; ctx!.strokeStyle='rgba(255,255,255,0.2)'; ctx!.lineWidth=0.8; ctx!.fill(); ctx!.stroke();
-        ctx!.fillStyle='rgba(255,255,255,0.85)'; ctx!.font='600 13px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
-        ctx!.fillText(inst.n,p.x,p.y-6);
-        ctx!.fillStyle='rgba(255,255,255,0.35)'; ctx!.font='400 10px -apple-system,sans-serif';
-        ctx!.fillText(inst.s,p.x,p.y+8);
+        ctx!.fillStyle=instFill; ctx!.strokeStyle=instStroke; ctx!.lineWidth=0.8; ctx!.fill(); ctx!.stroke();
+        ctx!.fillStyle=instLabel; ctx!.font='600 14px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
+        ctx!.fillText(inst.n,p.x,p.y-7);
+        ctx!.fillStyle=instSub; ctx!.font='400 11px -apple-system,sans-serif';
+        ctx!.fillText(inst.s,p.x,p.y+9);
       });
 
+      // Regulator nodes
       REGS.forEach((reg,i)=>{
         const p=getRegPos(i);
         rr(p.x-nw/2,p.y-NH/2,nw,NH,6);
         ctx!.fillStyle='rgba(212,168,67,0.08)'; ctx!.strokeStyle='rgba(212,168,67,0.5)'; ctx!.lineWidth=1; ctx!.fill(); ctx!.stroke();
-        ctx!.fillStyle='rgba(212,168,67,1.0)'; ctx!.font='700 14px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
-        ctx!.fillText(reg.n,p.x,p.y-6);
-        ctx!.fillStyle='rgba(255,255,255,0.4)'; ctx!.font='400 10px -apple-system,sans-serif';
-        ctx!.fillText(reg.s,p.x,p.y+8);
+        ctx!.fillStyle='rgba(212,168,67,1.0)'; ctx!.font='700 15px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
+        ctx!.fillText(reg.n,p.x,p.y-7);
+        ctx!.fillStyle='rgba(255,255,255,0.4)'; ctx!.font='400 11px -apple-system,sans-serif';
+        ctx!.fillText(reg.s,p.x,p.y+9);
       });
 
+      // Center AI node
       const pulse=Math.sin(aiPulse)*0.5+0.5;
       ctx!.beginPath(); ctx!.arc(cx,cy,CR+14+pulse*8,0,Math.PI*2);
       ctx!.strokeStyle=`rgba(212,168,67,${0.05+pulse*0.08})`; ctx!.lineWidth=1; ctx!.stroke();
       ctx!.beginPath(); ctx!.arc(cx,cy,CR+6,0,Math.PI*2);
       ctx!.strokeStyle='rgba(212,168,67,0.15)'; ctx!.lineWidth=1; ctx!.stroke();
       ctx!.beginPath(); ctx!.arc(cx,cy,CR,0,Math.PI*2);
-      ctx!.fillStyle='rgba(0,0,0,0.3)'; ctx!.strokeStyle='rgba(212,168,67,0.9)'; ctx!.lineWidth=2; ctx!.fill(); ctx!.stroke();
+      ctx!.fillStyle=centerFill; ctx!.strokeStyle='rgba(212,168,67,0.9)'; ctx!.lineWidth=2; ctx!.fill(); ctx!.stroke();
       ctx!.fillStyle='rgba(212,168,67,0.95)'; ctx!.font=`700 ${Math.round(CR*0.28)}px -apple-system,sans-serif`; ctx!.textAlign='center'; ctx!.textBaseline='middle';
       ctx!.fillText('Stablus',cx,cy-CR*0.15);
-      ctx!.fillStyle='rgba(255,255,255,0.5)'; ctx!.font=`400 ${Math.round(CR*0.21)}px -apple-system,sans-serif`;
+      ctx!.fillStyle=engineText; ctx!.font=`400 ${Math.round(CR*0.21)}px -apple-system,sans-serif`;
       ctx!.fillText('AI Engine',cx,cy+CR*0.22);
 
       animId=requestAnimationFrame(draw);
@@ -168,7 +190,7 @@ export default function HeroVisual() {
       draw();
     },80);
 
-    return ()=>{ cancelAnimationFrame(animId); observer.disconnect(); };
+    return ()=>{ cancelAnimationFrame(animId); observer.disconnect(); mq.removeEventListener('change', onSchemeChange); };
   },[]);
 
   return <canvas ref={canvasRef} className="hidden md:block w-full h-full" />;
