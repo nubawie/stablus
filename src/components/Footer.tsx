@@ -35,6 +35,7 @@ export function Footer() {
                 { href: `/${locale}/services`, label: tn("services") },
                 { href: `/${locale}/approach`, label: tn("approach") },
                 { href: `/${locale}/about`, label: tn("about") },
+                { href: `/${locale}/insights`, label: tn("insights") },
                 { href: `/${locale}/start`, label: tn("startProject") },
                 { href: `/${locale}/contact`, label: tn("contact") },
               ].map((link) => (

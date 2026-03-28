@@ -35,6 +35,7 @@ export function Navigation() {
     { href: `/${locale}/services`, label: t("services") },
     { href: `/${locale}/approach`, label: t("approach") },
     { href: `/${locale}/about`, label: t("about") },
+    { href: `/${locale}/insights`, label: t("insights") },
     { href: `/${locale}/contact`, label: t("contact") },
   ];
 
