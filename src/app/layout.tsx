@@ -13,6 +13,10 @@ export const metadata: Metadata = {
     siteName: "Stablus",
     type: "website",
   },
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    apple: "/apple-icon.png",
+  },
   verification: {
     google: "kiwhhm1DAB9AljkuwI8EcYDipt1gp9iwAIIgFv5nNuc",
   },
