@@ -112,36 +112,26 @@ export default function HeroVisual() {
     const colLeft = 110;
     const colRight = W - 110;
     const colCenter = W / 2;
-    const topPad = 44;
-    const botPad = 24;
-    const usableH = H - topPad - botPad;
 
     // Node box sizes
-    const instW = 140;
-    const instH = 42;
-    const regW = 150;
-    const regH = 42;
-    const aiRadius = 42;
+    const instW = 130;
+    const instH = 44;
+    const regW = 140;
+    const regH = 44;
+    const aiRadius = 52;
 
-    // Build node positions
-    const leftYs = LEFT_LABELS.map((_, i) =>
-      topPad + (usableH / (LEFT_LABELS.length + 1)) * (i + 1)
-    );
-    const rightYs = RIGHT_LABELS.map((_, i) =>
-      topPad + (usableH / (RIGHT_LABELS.length + 1)) * (i + 1)
-    );
+    // Build node positions — centered vertically
+    const instSpacing = 75;
+    const regSpacing = 65;
+    const leftStartY = (H - (LEFT_LABELS.length - 1) * instSpacing) / 2;
+    const rightStartY = (H - (RIGHT_LABELS.length - 1) * regSpacing) / 2;
+    const leftYs = LEFT_LABELS.map((_, i) => leftStartY + i * instSpacing);
+    const rightYs = RIGHT_LABELS.map((_, i) => rightStartY + i * regSpacing);
     const centerY = H / 2;
-
-    // Column headers
-    ctx.font = "500 11px Inter, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(255,255,255,0.25)";
-    ctx.fillText("Your Institution", colLeft, 24);
-    ctx.fillText("GCC Regulators", colRight, 24);
 
     // Build curves
     const leftCurves: Curve[] = leftYs.map((y) => {
-      const dx = 120;
+      const dx = 140;
       return {
         p0x: colLeft + instW / 2, p0y: y,
         p1x: colLeft + instW / 2 + dx, p1y: y,
@@ -151,7 +141,7 @@ export default function HeroVisual() {
     });
 
     const rightCurves: Curve[] = rightYs.map((y) => {
-      const dx = 120;
+      const dx = 140;
       return {
         p0x: colCenter, p0y: centerY,
         p1x: colCenter + dx, p1y: centerY,
@@ -179,7 +169,7 @@ export default function HeroVisual() {
       const bx = colLeft - instW / 2;
       const by = y - instH / 2;
 
-      roundRect(ctx, bx, by, instW, instH, 6);
+      roundRect(ctx, bx, by, instW, instH, 5);
       ctx.fillStyle = "rgba(255,255,255,0.04)";
       ctx.fill();
       ctx.strokeStyle = "rgba(255,255,255,0.15)";
@@ -188,7 +178,7 @@ export default function HeroVisual() {
 
       ctx.font = "500 13px Inter, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(255,255,255,0.45)";
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
       ctx.fillText(label, colLeft, y + 4);
     });
 
@@ -198,16 +188,16 @@ export default function HeroVisual() {
       const bx = colRight - regW / 2;
       const by = y - regH / 2;
 
-      roundRect(ctx, bx, by, regW, regH, 6);
+      roundRect(ctx, bx, by, regW, regH, 5);
       ctx.fillStyle = "rgba(212,168,67,0.07)";
       ctx.fill();
       ctx.strokeStyle = "rgba(212,168,67,0.4)";
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      ctx.font = "bold 14px Inter, sans-serif";
+      ctx.font = "600 14px Inter, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(212,168,67,0.7)";
+      ctx.fillStyle = "rgba(212,168,67,1.0)";
       ctx.fillText(label, colRight, y + 1);
 
       if (!isCompact) {
@@ -218,8 +208,8 @@ export default function HeroVisual() {
           VARA: "Virtual Assets Authority",
           SCA: "Securities & Commodities",
         };
-        ctx.font = "400 11px Inter, sans-serif";
-        ctx.fillStyle = "rgba(212,168,67,0.35)";
+        ctx.font = "400 10px Inter, sans-serif";
+        ctx.fillStyle = "rgba(255,255,255,0.35)";
         ctx.fillText(subLabels[label] || "", colRight, y + 14);
       }
     });
@@ -230,15 +220,16 @@ export default function HeroVisual() {
     const pulseAlpha = 0.3 - Math.sin(pulseRef.current) * 0.15;
 
     // Outer pulse ring
+    const pulseOuter = aiRadius + pulseScale * 12;
     ctx.beginPath();
-    ctx.arc(colCenter, centerY, aiRadius * pulseScale * 1.6, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(212,168,67,${pulseAlpha * 0.5})`;
+    ctx.arc(colCenter, centerY, pulseOuter * 1.3, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(212,168,67,${pulseAlpha * 0.4})`;
     ctx.lineWidth = 1;
     ctx.stroke();
 
     // Inner pulse ring
     ctx.beginPath();
-    ctx.arc(colCenter, centerY, aiRadius * pulseScale * 1.25, 0, Math.PI * 2);
+    ctx.arc(colCenter, centerY, pulseOuter, 0, Math.PI * 2);
     ctx.strokeStyle = `rgba(212,168,67,${pulseAlpha})`;
     ctx.lineWidth = 1;
     ctx.stroke();
@@ -254,18 +245,18 @@ export default function HeroVisual() {
     grad.addColorStop(1, "rgba(212,168,67,0.04)");
     ctx.fillStyle = grad;
     ctx.fill();
-    ctx.strokeStyle = "rgba(212,168,67,0.8)";
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(212,168,67,0.9)";
+    ctx.lineWidth = 2;
     ctx.stroke();
 
     // Center node text
-    ctx.font = "bold 13px Inter, sans-serif";
+    ctx.font = "600 14px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillStyle = "rgba(212,168,67,0.9)";
-    ctx.fillText("Stablus", colCenter, centerY - 2);
-    ctx.font = "500 10px Inter, sans-serif";
+    ctx.fillText("Stablus", colCenter, centerY - 3);
+    ctx.font = "500 11px Inter, sans-serif";
     ctx.fillStyle = "rgba(212,168,67,0.55)";
-    ctx.fillText("AI Engine", colCenter, centerY + 12);
+    ctx.fillText("AI Engine", colCenter, centerY + 13);
 
     // Particles
     const particles = particlesRef.current;
