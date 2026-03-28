@@ -22,7 +22,7 @@ export default function HeroVisual() {
       { n: 'SCA',   s: 'Securities & Commodities' },
     ];
 
-    const IW = 148, IH = 46, RW = 158, RH = 46;
+    const IW = 158, IH = 46, RW = 158, RH = 46;
     const MAX_P = 14;
     const particles: { side: string; idx: number; t: number; speed: number; size: number; alpha: number }[] = [];
 
@@ -122,12 +122,20 @@ export default function HeroVisual() {
       });
 
       // Institution nodes
+      const instSubs: Record<string, string> = {
+        'Central Bank UAE': 'CBUAE Licensed',
+        'Commercial Bank GCC': 'Regional Institution',
+        'Exchange Licensed': 'VARA / DFSA',
+        'Fintech Startup': 'Regulated Entity',
+      };
       INSTS.forEach((label,i) => {
         const p = getInstPos(i);
         drawRoundRect(p.x-IW/2, p.y-IH/2, IW, IH, 6);
-        ctx!.fillStyle='rgba(255,255,255,0.04)'; ctx!.strokeStyle='rgba(255,255,255,0.12)'; ctx!.lineWidth=0.8; ctx!.fill(); ctx!.stroke();
-        ctx!.fillStyle='rgba(255,255,255,0.82)'; ctx!.font='500 13px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
-        ctx!.fillText(label, p.x, p.y);
+        ctx!.fillStyle='rgba(255,255,255,0.05)'; ctx!.strokeStyle='rgba(255,255,255,0.25)'; ctx!.lineWidth=1; ctx!.fill(); ctx!.stroke();
+        ctx!.fillStyle='rgba(255,255,255,0.9)'; ctx!.font='700 14px -apple-system,sans-serif'; ctx!.textAlign='center'; ctx!.textBaseline='middle';
+        ctx!.fillText(label, p.x, p.y-6);
+        ctx!.fillStyle='rgba(255,255,255,0.35)'; ctx!.font='400 10px -apple-system,sans-serif';
+        ctx!.fillText(instSubs[label] || '', p.x, p.y+8);
       });
 
       // Regulator nodes
