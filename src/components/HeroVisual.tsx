@@ -92,13 +92,13 @@ export default function HeroVisual() {
       const nw=NW(), cpx=W*0.22, CR=Math.min(W*0.09,52);
 
       // Theme-aware colors
-      const guideStroke = dark ? 'rgba(212,168,67,0.12)' : 'rgba(180,140,50,0.25)';
-      const instFill = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-      const instStroke = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
-      const instLabel = dark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.8)';
-      const instSub = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.4)';
-      const centerFill = dark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.6)';
-      const engineText = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+      const guideStroke = dark ? 'rgba(212,168,67,0.12)' : 'rgba(180,140,50,0.35)';
+      const instFill = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+      const instStroke = dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.25)';
+      const instLabel = dark ? 'rgba(255,255,255,0.85)' : '#1a1a1a';
+      const instSub = dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.55)';
+      const centerFill = dark ? 'rgba(0,0,0,0.3)' : 'rgba(200,190,170,0.5)';
+      const engineText = dark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.65)';
 
       // Guide lines
       INSTS.forEach((_,i)=>{
