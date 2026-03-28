@@ -122,7 +122,7 @@ export default function HomeContent() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="hidden md:block w-full h-[500px] relative"
+              className="hidden md:block w-full h-[500px] relative bg-[#0a0a0f] rounded-2xl overflow-hidden"
             >
               <HeroVisual />
             </motion.div>

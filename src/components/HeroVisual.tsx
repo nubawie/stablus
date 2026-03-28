@@ -81,7 +81,6 @@ export default function HeroVisual() {
       if (!ctx) return;
       if (!W||!H) { animId=requestAnimationFrame(draw); return; }
       ctx.clearRect(0,0,W,H);
-      ctx.fillStyle='#0a0a0f'; ctx.fillRect(0,0,W,H);
       aiPulse+=0.02;
 
       const nw=NW(), nh=NH(), cpx=cpFunc(), CR=Math.min(W*0.09,52);
@@ -180,6 +179,6 @@ export default function HeroVisual() {
   },[]);
 
   return (
-    <canvas ref={canvasRef} className="hidden md:block w-full h-full" style={{background:'transparent'}} />
+    <canvas ref={canvasRef} className="hidden md:block w-full h-full" />
   );
 }
