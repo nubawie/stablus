@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #F8F8F6;
+  --surface: #FFFFFF;
+  --navy: #0A1628;
+  --gold: #B8963E;
+  --text-primary: #0D0D0D;
+  --text-secondary: #5C5C6E;
+  --border: #E2E2E8;
+  --footer-bg: #F0F0EC;
+  --card-shadow: 0 2px 12px rgba(10, 22, 40, 0.08);
+}
+
+.dark {
+  --bg: #0D0F14;
+  --surface: #161A23;
+  --navy: #E8EDF5;
+  --gold: #C9A84C;
+  --text-primary: #F0EDE8;
+  --text-secondary: #8A8A9A;
+  --border: #2A2D35;
+  --footer-bg: #0A0C10;
+  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* Logo: white on transparent PNG */
+/* Light mode: invert to show dark logo on light bg */
+.stablus-logo {
+  height: 32px;
+  width: auto;
+  filter: invert(1);
+}
+
+/* Dark mode: show white logo naturally */
+.dark .stablus-logo {
+  filter: none;
+}
+
+/* Mobile: slightly smaller */
+@media (max-width: 768px) {
+  .stablus-logo {
+    height: 26px;
+  }
+}
+
+/* RTL layout adjustments */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] body {
+  font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
+}
