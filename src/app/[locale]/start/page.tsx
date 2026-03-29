@@ -42,6 +42,10 @@ export default function StartPage() {
   const [attachedFile, setAttachedFile] = useState<AttachedFile | null>(null);
   const [uploadProgress, setUploadProgress] = useState(false);
   const [showConsent, setShowConsent] = useState(true);
+  const [intakeStep, setIntakeStep] = useState<0 | 1 | 2 | 3>(0);
+  const [regulation, setRegulation] = useState("");
+  const [orgType, setOrgType] = useState("");
+  const [role, setRole] = useState("");
   const [checked1, setChecked1] = useState(false);
   const [checked2, setChecked2] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -128,7 +132,7 @@ export default function StartPage() {
     }
 
     try {
-      const body: Record<string, unknown> = { messages: newMessages };
+      const body: Record<string, unknown> = { messages: newMessages, regulation, orgType, role };
       if (fileToSend) {
         body.file = {
           name: fileToSend.name,
@@ -154,11 +158,13 @@ export default function StartPage() {
               "I apologize, but I\u2019m having trouble connecting right now. Please try again in a moment, or reach out to us directly at info@stablus.ae.",
           },
         ]);
+        fetch("/api/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({regulation,orgType,role,query:userContent,status:"error"})});
       } else {
         setMessages([
           ...newMessages,
           { role: "assistant", content: data.message },
         ]);
+        fetch("/api/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({regulation,orgType,role,query:userContent,status:"success"})});
       }
     } catch {
       setMessages([
@@ -169,6 +175,7 @@ export default function StartPage() {
             "I apologize, but I\u2019m having trouble connecting right now. Please try again in a moment, or reach out to us directly at info@stablus.ae.",
         },
       ]);
+      fetch("/api/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({regulation,orgType,role,query:userContent,status:"error"})});
     } finally {
       setIsLoading(false);
     }
@@ -360,6 +367,41 @@ export default function StartPage() {
               </div>
             )}
 
+            {intakeStep < 3 && !showConsent && (
+              <div className="px-4 md:px-6 py-4 border-b border-border-color">
+                {intakeStep === 0 && (
+                  <div>
+                    <p className="text-small font-medium text-text-secondary mb-3">Which regulation are you targeting?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["CBUAE","VARA","FSRA","DFSA","SCA","Not sure"].map((r) => (
+                        <button key={r} type="button" onClick={() => { setRegulation(r); setIntakeStep(1); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{r}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {intakeStep === 1 && (
+                  <div>
+                    <p className="text-small font-medium text-text-secondary mb-3">What type of organization are you?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Bank","Fintech","Payment Institution","IT Company","Consultancy","Other"].map((o) => (
+                        <button key={o} type="button" onClick={() => { setOrgType(o); setIntakeStep(2); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{o}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {intakeStep === 2 && (
+                  <div>
+                    <p className="text-small font-medium text-text-secondary mb-3">What is your role?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Compliance","Legal","Technology","C-Suite","Consultant","Other"].map((rl) => (
+                        <button key={rl} type="button" onClick={() => { setRole(rl); setIntakeStep(3); fetch("/api/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({regulation,orgType,role:rl,query:"",status:"started"})}); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{rl}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="flex gap-3 items-end p-4 md:p-6 pt-3">
               <textarea
                 ref={textareaRef}
@@ -371,9 +413,9 @@ export default function StartPage() {
                 onKeyDown={handleKeyDown}
                 placeholder={t("placeholder")}
                 rows={1}
-                disabled={showConsent}
+                disabled={showConsent || intakeStep < 3}
                 className="flex-1 px-4 py-3 bg-bg border border-border-color rounded-lg text-text-primary text-body placeholder:text-text-secondary/50 focus:outline-none focus:border-navy transition-colors resize-none min-h-[44px]"
-                style={{ opacity: showConsent ? 0.4 : 1, maxHeight: "160px", overflowY: "auto" }}
+                style={{ opacity: showConsent || intakeStep < 3 ? 0.4 : 1, maxHeight: "160px", overflowY: "auto" }}
               />
 
               <input
@@ -386,7 +428,7 @@ export default function StartPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={showConsent}
+                disabled={showConsent || intakeStep < 3}
                 className="p-3 text-navy hover:opacity-70 transition-colors min-h-[44px] flex items-center disabled:opacity-30"
                 aria-label="Attach file"
               >
@@ -397,7 +439,7 @@ export default function StartPage() {
 
               <button
                 type="submit"
-                disabled={showConsent || isLoading || (!input.trim() && !attachedFile)}
+                disabled={showConsent || intakeStep < 3 || isLoading || (!input.trim() && !attachedFile)}
                 className="px-5 py-3 bg-navy text-bg text-[14px] font-semibold tracking-[0.04em] rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
