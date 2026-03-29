@@ -14,12 +14,7 @@ export default function HeroVisual() {
     let animId: number;
     let aiPulse = 0;
 
-    const isDark = () => document.documentElement.classList.contains('dark')
-      || window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onSchemeChange = () => { /* canvas redraws on next frame automatically */ };
-    mq.addEventListener('change', onSchemeChange);
+    const isDark = () => document.documentElement.classList.contains('dark');
 
     const INSTS = [
       { n: 'Central Bank UAE',    s: 'CBUAE Licensed' },
@@ -188,6 +183,11 @@ export default function HeroVisual() {
     });
     observer.observe(canvas);
 
+    const themeObserver = new MutationObserver(() => {
+      // theme changed, next draw() frame will pick it up automatically
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
     setTimeout(()=>{
       const r=canvas.getBoundingClientRect();
       canvas.width=r.width; canvas.height=r.height;
@@ -195,7 +195,7 @@ export default function HeroVisual() {
       draw();
     },80);
 
-    return ()=>{ cancelAnimationFrame(animId); observer.disconnect(); mq.removeEventListener('change', onSchemeChange); };
+    return ()=>{ cancelAnimationFrame(animId); observer.disconnect(); themeObserver.disconnect(); };
   },[]);
 
   return <canvas ref={canvasRef} className="hidden md:block w-full h-full" />;
