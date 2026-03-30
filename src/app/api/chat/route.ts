@@ -136,7 +136,7 @@ type ContentBlock =
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { messages, file } = body;
+    const { messages, file, regulation, orgType, role: userRole, selectedService, serviceAnswers } = body;
 
     const claudeMessages: Array<{
       role: "user" | "assistant";
@@ -236,7 +236,7 @@ export async function POST(req: NextRequest) {
           name: "web_search",
         },
       ],
-      system: SYSTEM_PROMPT,
+      system: SYSTEM_PROMPT + (selectedService ? `\n\nCONTEXT FROM INTAKE:\nRegulation: ${regulation || "not specified"}\nOrganization type: ${orgType || "not specified"}\nUser role: ${userRole || "not specified"}\nSelected service: ${selectedService}\nAnswers collected: ${JSON.stringify(serviceAnswers || {})}.\n\nThe user has completed intake and selected their service. All follow-up questions have been answered via chip selections. Do NOT ask them the questions already answered above. Instead, acknowledge their selections, confirm the scope, state the deliverable, price, and delivery time, then ask only what is genuinely missing to begin the document. End with: "To proceed, please contact us at info@stablus.ae."` : ""),
       messages: claudeMessages,
     });
 

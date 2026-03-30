@@ -28,8 +28,55 @@ const ACCEPTED_TYPES =
 
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
-  content:
-    "Welcome to Stablus. I\u2019m here to help you scope your project and find the right starting point. To begin, what are you building, or what challenge are you trying to solve?",
+  content: "Welcome to Stablus. I\u2019m here to help you get a professional advisory document for your regulated financial initiative. Once you\u2019ve told me a bit about yourself, I\u2019ll help you select the right deliverable.",
+};
+
+const SERVICES = [
+  { id: "regulatory", label: "Regulatory Readiness Report", price: "AED 2,500", time: "2 hrs" },
+  { id: "architecture", label: "System Architecture Blueprint", price: "AED 3,500", time: "4 hrs" },
+  { id: "delivery", label: "Project Delivery Pack", price: "AED 2,000", time: "2 hrs" },
+  { id: "prd", label: "Product Requirements Document", price: "AED 2,500", time: "3 hrs" },
+  { id: "audit", label: "Audit Readiness Checklist", price: "AED 1,800", time: "1 hr" },
+  { id: "business", label: "Business Case Document", price: "AED 4,500", time: "4 hrs" },
+];
+
+const SERVICE_FLOWS: Record<string, { question: string; options: string[] }[]> = {
+  regulatory: [
+    { question: "What activity are you seeking to operate?", options: ["Payment services", "Stored value facility", "Crypto exchange / VASP", "Custody services", "Lending / BNPL", "Open banking / API", "Other"] },
+    { question: "What is your current licensing status?", options: ["No license yet", "In sandbox", "Provisional approval", "Fully licensed", "License under review"] },
+    { question: "What is your biggest compliance gap right now?", options: ["AML / KYC framework", "Capital adequacy", "Governance & board structure", "Technology & cybersecurity", "Not sure \u2014 need full assessment"] },
+    { question: "What is your timeline pressure?", options: ["Urgent \u2014 under 3 months", "3\u20136 months", "6\u201312 months", "Exploratory \u2014 no fixed date"] },
+  ],
+  architecture: [
+    { question: "What is your current core banking platform?", options: ["Temenos", "Finacle", "Flexcube", "Mambu", "Custom / in-house", "None yet"] },
+    { question: "What are you building?", options: ["Crypto / digital asset wallet", "Payment platform", "Open banking layer", "Blockchain settlement", "Digital bank", "DeFi or lending product"] },
+    { question: "What is your infrastructure preference?", options: ["Cloud (AWS / Azure / GCP)", "On-premise", "Hybrid", "Not yet decided"] },
+    { question: "What is the primary integration challenge?", options: ["Core banking API connectivity", "Blockchain node integration", "Third-party KYC / AML tools", "Regulatory reporting pipeline", "Legacy middleware modernisation"] },
+  ],
+  delivery: [
+    { question: "What type of project is this?", options: ["New platform launch", "System migration", "Third-party integration", "Regulatory remediation", "Vendor implementation"] },
+    { question: "What is the current project phase?", options: ["Planning", "In execution", "Approaching go-live", "Post-launch stabilisation"] },
+    { question: "What is the governance framework?", options: ["Agile / Scrum", "Waterfall", "Hybrid", "Not defined yet"] },
+    { question: "What documentation is missing?", options: ["Project charter", "RAID log", "Vendor SOW / SLA", "Test plans", "Runbook / go-live plan", "All of the above"] },
+  ],
+  prd: [
+    { question: "What product are you building?", options: ["Digital wallet", "Payment application", "Crypto trading platform", "Lending / BNPL product", "Open banking product", "Tokenisation platform"] },
+    { question: "Who are your target users?", options: ["Retail consumers", "Corporate clients", "Institutional clients", "Mixed"] },
+    { question: "What is your current tech stack?", options: ["Defined and documented", "Partially defined", "Not yet decided", "Vendor-provided"] },
+    { question: "What regulatory constraints must the PRD embed?", options: ["CBUAE payment rules", "VARA virtual asset rules", "FSRA / DFSA framework", "AML / KYC requirements", "Multiple \u2014 need full mapping"] },
+  ],
+  audit: [
+    { question: "Which regulator is conducting the audit?", options: ["CBUAE", "VARA", "FSRA / ADGM", "DFSA / DIFC", "SCA", "Internal audit"] },
+    { question: "What type of audit is this?", options: ["Routine supervisory", "License renewal", "Triggered by incident", "Pre-licensing inspection", "Internal readiness review"] },
+    { question: "How much time do you have before the audit?", options: ["Under 4 weeks", "1\u20133 months", "3\u20136 months", "Date not confirmed"] },
+    { question: "What is your primary area of concern?", options: ["AML / CFT controls", "Cybersecurity posture", "Governance documentation", "Capital and liquidity", "All areas \u2014 need full checklist"] },
+  ],
+  business: [
+    { question: "What initiative are you making the case for?", options: ["Stablecoin issuance", "Crypto exchange / trading", "Blockchain settlement layer", "CBDC integration", "Asset tokenisation", "DeFi / digital lending", "Digital banking licence"] },
+    { question: "Who is the primary audience for this document?", options: ["Board of directors", "Executive committee (ExCo)", "External investors", "Regulator submission", "Internal strategy team"] },
+    { question: "What format do you need?", options: ["PowerPoint \u2014 for board presentation", "Word \u2014 for internal editing", "PDF \u2014 for formal submission"] },
+    { question: "What is the primary decision being made?", options: ["Approve the initiative", "Secure budget / investment", "Choose between options", "Obtain regulatory pre-approval"] },
+  ],
 };
 
 export default function StartPage() {
@@ -46,6 +93,9 @@ export default function StartPage() {
   const [regulation, setRegulation] = useState("");
   const [orgType, setOrgType] = useState("");
   const [role, setRole] = useState("");
+  const [selectedService, setSelectedService] = useState("");
+  const [serviceStep, setServiceStep] = useState(0);
+  const [serviceAnswers, setServiceAnswers] = useState<Record<string, string>>({});
   const [checked1, setChecked1] = useState(false);
   const [checked2, setChecked2] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -132,7 +182,7 @@ export default function StartPage() {
     }
 
     try {
-      const body: Record<string, unknown> = { messages: newMessages, regulation, orgType, role };
+      const body: Record<string, unknown> = { messages: newMessages, regulation, orgType, role, selectedService, serviceAnswers };
       if (fileToSend) {
         body.file = {
           name: fileToSend.name,
@@ -309,6 +359,48 @@ export default function StartPage() {
               </motion.div>
             ))}
 
+            {intakeStep === 3 && !selectedService && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
+                <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
+                  <p className="text-small font-medium text-text-secondary mb-3">Which deliverable do you need?</p>
+                  <div className="flex flex-col gap-2">
+                    {SERVICES.map((svc) => (
+                      <button key={svc.id} type="button" onClick={() => {
+                        setSelectedService(svc.id);
+                        setServiceStep(0);
+                        const msg: Message = { role: "user", content: svc.label };
+                        setMessages((prev) => [...prev, msg]);
+                      }} className="text-left px-4 py-3 border border-border-color rounded-lg hover:border-navy transition-colors">
+                        <span className="text-body font-medium text-text-primary">{svc.label}</span>
+                        <span className="text-small text-text-secondary ml-2">{svc.price} · {svc.time}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {intakeStep === 3 && selectedService && serviceStep < SERVICE_FLOWS[selectedService].length && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
+                <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
+                  <p className="text-small font-medium text-text-secondary mb-3">{SERVICE_FLOWS[selectedService][serviceStep].question}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {SERVICE_FLOWS[selectedService][serviceStep].options.map((opt) => (
+                      <button key={opt} type="button" onClick={() => {
+                        const q = SERVICE_FLOWS[selectedService][serviceStep].question;
+                        setServiceAnswers((prev) => ({ ...prev, [q]: opt }));
+                        setServiceStep((prev) => prev + 1);
+                        const msg: Message = { role: "user", content: opt };
+                        setMessages((prev) => [...prev, msg]);
+                      }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {isLoading && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -413,9 +505,9 @@ export default function StartPage() {
                 onKeyDown={handleKeyDown}
                 placeholder={t("placeholder")}
                 rows={1}
-                disabled={showConsent || intakeStep < 3}
+                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length)}
                 className="flex-1 px-4 py-3 bg-bg border border-border-color rounded-lg text-text-primary text-body placeholder:text-text-secondary/50 focus:outline-none focus:border-navy transition-colors resize-none min-h-[44px]"
-                style={{ opacity: showConsent || intakeStep < 3 ? 0.4 : 1, maxHeight: "160px", overflowY: "auto" }}
+                style={{ opacity: showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) ? 0.4 : 1, maxHeight: "160px", overflowY: "auto" }}
               />
 
               <input
@@ -428,7 +520,7 @@ export default function StartPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={showConsent || intakeStep < 3}
+                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length)}
                 className="p-3 text-navy hover:opacity-70 transition-colors min-h-[44px] flex items-center disabled:opacity-30"
                 aria-label="Attach file"
               >
@@ -439,7 +531,7 @@ export default function StartPage() {
 
               <button
                 type="submit"
-                disabled={showConsent || intakeStep < 3 || isLoading || (!input.trim() && !attachedFile)}
+                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || isLoading || (!input.trim() && !attachedFile)}
                 className="px-5 py-3 bg-navy text-bg text-[14px] font-semibold tracking-[0.04em] rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
