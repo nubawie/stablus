@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
+import ReactMarkdown from "react-markdown";
 
 function useStartTranslations() {
   return useTranslations("start");
@@ -466,7 +467,28 @@ export default function StartPage() {
                       : "bg-surface text-text-primary border border-border-color rounded-bl-md"
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === "assistant" ? (
+                    <ReactMarkdown
+                      components={{
+                        h1: ({children}) => <h1 className="text-xl font-bold font-serif text-navy mt-4 mb-2">{children}</h1>,
+                        h2: ({children}) => <h2 className="text-lg font-bold font-serif text-navy mt-4 mb-2">{children}</h2>,
+                        h3: ({children}) => <h3 className="text-base font-semibold text-navy mt-3 mb-1">{children}</h3>,
+                        h4: ({children}) => <h4 className="text-base font-semibold text-text-primary mt-2 mb-1">{children}</h4>,
+                        p: ({children}) => <p className="mb-2 leading-relaxed">{children}</p>,
+                        ul: ({children}) => <ul className="list-disc pl-5 mb-2 space-y-1">{children}</ul>,
+                        ol: ({children}) => <ol className="list-decimal pl-5 mb-2 space-y-1">{children}</ol>,
+                        li: ({children}) => <li className="leading-relaxed">{children}</li>,
+                        strong: ({children}) => <strong className="font-semibold text-text-primary">{children}</strong>,
+                        hr: () => <hr className="border-border-color my-4" />,
+                        code: ({children}) => <code className="font-mono text-sm bg-navy/10 px-1.5 py-0.5 rounded">{children}</code>,
+                        pre: ({children}) => <pre className="font-mono text-sm bg-navy/5 border border-border-color rounded-lg p-4 overflow-x-auto my-3 whitespace-pre">{children}</pre>,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.content
+                  )}
                 </div>
               </motion.div>
             ))}
