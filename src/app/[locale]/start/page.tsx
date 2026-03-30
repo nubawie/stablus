@@ -235,7 +235,7 @@ export default function StartPage() {
             <button
               onClick={() => { if (checked1 && checked2) { sessionStorage.setItem("stablus-consent", "true"); setShowConsent(false); } }}
               disabled={!checked1 || !checked2}
-              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: checked1 && checked2 ? "var(--navy)" : "var(--border)", color: checked1 && checked2 ? "white" : "var(--text-secondary)", fontSize: "14px", fontWeight: 600, cursor: checked1 && checked2 ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif", letterSpacing: "0.02em", transition: "all 0.2s ease" }}
+              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: checked1 && checked2 ? "var(--navy)" : "var(--border)", color: checked1 && checked2 ? "var(--bg)" : "var(--text-secondary)", fontSize: "14px", fontWeight: 600, cursor: checked1 && checked2 ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif", letterSpacing: "0.02em", transition: "all 0.2s ease" }}
             >
               {isArabic ? "\u0623\u0641\u0647\u0645 \u0648\u0623\u0648\u0627\u0641\u0642" : "I understand and agree"}
             </button>
