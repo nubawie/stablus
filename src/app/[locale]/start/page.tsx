@@ -344,7 +344,7 @@ export default function StartPage() {
             <button
               onClick={() => { if (userEmail.includes("@")) { setEmailSubmitted(true); sessionStorage.setItem("stablus-email", userEmail); } }}
               disabled={!userEmail.includes("@")}
-              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: userEmail.includes("@") ? "var(--navy)" : "var(--border)", color: userEmail.includes("@") ? "white" : "var(--text-secondary)", fontSize: "14px", fontWeight: 600, cursor: userEmail.includes("@") ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}
+              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: userEmail.includes("@") ? "var(--navy)" : "var(--border)", color: userEmail.includes("@") ? "#ffffff" : "var(--text-secondary)", fontSize: "14px", fontWeight: 600, cursor: userEmail.includes("@") ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif", opacity: userEmail.includes("@") ? 1 : 0.5 }}
             >
               Continue
             </button>
