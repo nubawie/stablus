@@ -32,12 +32,12 @@ const INITIAL_MESSAGE: Message = {
 };
 
 const SERVICES = [
-  { id: "regulatory", label: "Regulatory Readiness Report", price: "AED 2,500", time: "2 hrs" },
-  { id: "architecture", label: "System Architecture Blueprint", price: "AED 3,500", time: "4 hrs" },
-  { id: "delivery", label: "Project Delivery Pack", price: "AED 2,000", time: "2 hrs" },
-  { id: "prd", label: "Product Requirements Document", price: "AED 2,500", time: "3 hrs" },
-  { id: "audit", label: "Audit Readiness Checklist", price: "AED 1,800", time: "1 hr" },
-  { id: "business", label: "Business Case Document", price: "AED 4,500", time: "4 hrs" },
+  { id: "regulatory", label: "Regulatory Readiness Report", price: "AED 2,500", time: "2 hrs", amount: 2500 },
+  { id: "architecture", label: "System Architecture Blueprint", price: "AED 3,500", time: "4 hrs", amount: 3500 },
+  { id: "delivery", label: "Project Delivery Pack", price: "AED 2,000", time: "2 hrs", amount: 2000 },
+  { id: "prd", label: "Product Requirements Document", price: "AED 2,500", time: "3 hrs", amount: 2500 },
+  { id: "audit", label: "Audit Readiness Checklist", price: "AED 1,800", time: "1 hr", amount: 1800 },
+  { id: "business", label: "Business Case Document", price: "AED 4,500", time: "4 hrs", amount: 4500 },
 ];
 
 const SERVICE_FLOWS: Record<string, { question: string; options: string[] }[]> = {
@@ -129,8 +129,11 @@ export default function StartPage() {
     if (savedRole) setRole(savedRole);
     if (savedService) { setSelectedService(savedService); setIntakeStep(3); }
     if (savedAnswers) { setServiceAnswers(JSON.parse(savedAnswers)); setServiceStep(SERVICE_FLOWS[savedService || ""]?.length || 0); }
+    const savedMessages = sessionStorage.getItem("stablus-messages");
+    if (savedMessages) { try { setMessages(JSON.parse(savedMessages)); } catch { /* ignore */ } }
     if (payment === "success") {
       setPaymentStatus("paid");
+      setShowPayButton(false);
       window.history.replaceState({}, "", window.location.pathname);
     }
     if (payment === "cancelled") {
@@ -208,11 +211,12 @@ export default function StartPage() {
       const data = await res.json();
       if (data.error) {
         setMessages([...currentMessages, { role: "assistant", content: "I\u2019m having trouble connecting right now. Please try again in a moment." }]);
-        fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regulation, orgType, role, query: "", status: "error" }) });
+        fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regulation, orgType, role, query: "", status: "error", email: userEmail, service: selectedService, amount: 0 }) });
       } else {
         setMessages([...currentMessages, { role: "assistant", content: data.message }]);
         setShowPayButton(true);
-        fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regulation, orgType, role, query: "", status: "success" }) });
+        const svcAmount = SERVICES.find(s => s.id === selectedService)?.amount || 0;
+        fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regulation, orgType, role, query: currentMessages[currentMessages.length - 1]?.content || "", status: "success", email: userEmail, service: selectedService, amount: svcAmount }) });
       }
     } catch {
       setMessages([...currentMessages, { role: "assistant", content: "I\u2019m having trouble connecting right now. Please try again in a moment." }]);
@@ -224,6 +228,7 @@ export default function StartPage() {
   async function handlePayment() {
     if (!selectedService || !userEmail) return;
     sessionStorage.setItem("stablus-email", userEmail);
+    sessionStorage.setItem("stablus-messages", JSON.stringify(messages));
     sessionStorage.setItem("stablus-service", selectedService);
     sessionStorage.setItem("stablus-answers", JSON.stringify(serviceAnswers));
     sessionStorage.setItem("stablus-regulation", regulation);
