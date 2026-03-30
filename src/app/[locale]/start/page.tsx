@@ -94,6 +94,10 @@ export default function StartPage() {
   const [orgType, setOrgType] = useState("");
   const [role, setRole] = useState("");
   const [selectedService, setSelectedService] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<"idle" | "pending" | "paid">("idle");
+  const [showPayButton, setShowPayButton] = useState(false);
   const [serviceStep, setServiceStep] = useState(0);
   const [serviceAnswers, setServiceAnswers] = useState<Record<string, string>>({});
   const [checked1, setChecked1] = useState(false);
@@ -107,6 +111,30 @@ export default function StartPage() {
     const consented = sessionStorage.getItem("stablus-consent");
     if (consented === "true") {
       setShowConsent(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    const savedEmail = sessionStorage.getItem("stablus-email");
+    const savedService = sessionStorage.getItem("stablus-service");
+    const savedAnswers = sessionStorage.getItem("stablus-answers");
+    const savedRegulation = sessionStorage.getItem("stablus-regulation");
+    const savedOrgType = sessionStorage.getItem("stablus-orgType");
+    const savedRole = sessionStorage.getItem("stablus-role");
+    if (savedEmail) { setUserEmail(savedEmail); setEmailSubmitted(true); }
+    if (savedRegulation) setRegulation(savedRegulation);
+    if (savedOrgType) setOrgType(savedOrgType);
+    if (savedRole) setRole(savedRole);
+    if (savedService) { setSelectedService(savedService); setIntakeStep(3); }
+    if (savedAnswers) { setServiceAnswers(JSON.parse(savedAnswers)); setServiceStep(SERVICE_FLOWS[savedService || ""]?.length || 0); }
+    if (payment === "success") {
+      setPaymentStatus("paid");
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    if (payment === "cancelled") {
+      window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
 
@@ -158,6 +186,60 @@ export default function StartPage() {
       URL.revokeObjectURL(attachedFile.previewUrl);
     }
     setAttachedFile(null);
+  }
+
+  async function triggerAIResponse(overrideMessages?: Message[]) {
+    const currentMessages = overrideMessages || messages;
+    setIsLoading(true);
+    try {
+      const body: Record<string, unknown> = {
+        messages: currentMessages,
+        regulation,
+        orgType,
+        role,
+        selectedService,
+        serviceAnswers,
+      };
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setMessages([...currentMessages, { role: "assistant", content: "I\u2019m having trouble connecting right now. Please try again in a moment." }]);
+        fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regulation, orgType, role, query: "", status: "error" }) });
+      } else {
+        setMessages([...currentMessages, { role: "assistant", content: data.message }]);
+        setShowPayButton(true);
+        fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regulation, orgType, role, query: "", status: "success" }) });
+      }
+    } catch {
+      setMessages([...currentMessages, { role: "assistant", content: "I\u2019m having trouble connecting right now. Please try again in a moment." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handlePayment() {
+    if (!selectedService || !userEmail) return;
+    sessionStorage.setItem("stablus-email", userEmail);
+    sessionStorage.setItem("stablus-service", selectedService);
+    sessionStorage.setItem("stablus-answers", JSON.stringify(serviceAnswers));
+    sessionStorage.setItem("stablus-regulation", regulation);
+    sessionStorage.setItem("stablus-orgType", orgType);
+    sessionStorage.setItem("stablus-role", role);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId: selectedService, email: userEmail, sessionData: { regulation, orgType, role, serviceAnswers } }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      alert("Payment setup failed. Please try again.");
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -240,6 +322,31 @@ export default function StartPage() {
 
   return (
     <>
+      {!emailSubmitted && !showConsent && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+          <div style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", maxWidth: "460px", width: "100%", padding: "40px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+            <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--gold)", marginBottom: "8px" }}>GET STARTED</p>
+            <h2 style={{ fontFamily: "Libre Baskerville, serif", fontSize: "22px", color: "var(--navy)", marginBottom: "12px" }}>Enter your email</h2>
+            <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: "1.6", marginBottom: "24px" }}>Your document will be accessible in this session. Enter your email to begin.</p>
+            <input
+              type="email"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && userEmail.includes("@")) { setEmailSubmitted(true); sessionStorage.setItem("stablus-email", userEmail); } }}
+              placeholder="you@company.com"
+              style={{ width: "100%", padding: "12px 14px", borderRadius: "8px", border: "1px solid var(--border)", backgroundColor: "var(--bg)", color: "var(--text-primary)", fontSize: "14px", fontFamily: "Inter, sans-serif", marginBottom: "16px", boxSizing: "border-box", outline: "none" }}
+            />
+            <button
+              onClick={() => { if (userEmail.includes("@")) { setEmailSubmitted(true); sessionStorage.setItem("stablus-email", userEmail); } }}
+              disabled={!userEmail.includes("@")}
+              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: userEmail.includes("@") ? "var(--navy)" : "var(--border)", color: userEmail.includes("@") ? "white" : "var(--text-secondary)", fontSize: "14px", fontWeight: 600, cursor: userEmail.includes("@") ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif" }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
       {showConsent && (
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
           <div style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", maxWidth: "520px", width: "100%", padding: "40px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
@@ -368,6 +475,8 @@ export default function StartPage() {
                       <button key={svc.id} type="button" onClick={() => {
                         setSelectedService(svc.id);
                         setServiceStep(0);
+                        setShowPayButton(false);
+                        setPaymentStatus("idle");
                         const msg: Message = { role: "user", content: svc.label };
                         setMessages((prev) => [...prev, msg]);
                       }} className="text-left px-4 py-3 border border-border-color rounded-lg hover:border-navy transition-colors">
@@ -387,11 +496,16 @@ export default function StartPage() {
                   <div className="flex flex-wrap gap-2">
                     {SERVICE_FLOWS[selectedService][serviceStep].options.map((opt) => (
                       <button key={opt} type="button" onClick={() => {
-                        const q = SERVICE_FLOWS[selectedService][serviceStep].question;
-                        setServiceAnswers((prev) => ({ ...prev, [q]: opt }));
-                        setServiceStep((prev) => prev + 1);
-                        const msg: Message = { role: "user", content: opt };
-                        setMessages((prev) => [...prev, msg]);
+                        const newStep = serviceStep + 1;
+                        const newAnswers = { ...serviceAnswers, [SERVICE_FLOWS[selectedService][serviceStep].question]: opt };
+                        setServiceAnswers(newAnswers);
+                        setServiceStep(newStep);
+                        const newMsg: Message = { role: "user", content: opt };
+                        const newMessages = [...messages, newMsg];
+                        setMessages(newMessages);
+                        if (newStep >= SERVICE_FLOWS[selectedService].length) {
+                          setTimeout(() => triggerAIResponse(newMessages), 300);
+                        }
                       }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">
                         {opt}
                       </button>
@@ -494,6 +608,20 @@ export default function StartPage() {
               </div>
             )}
 
+            {showPayButton && paymentStatus !== "paid" && selectedService && (
+              <div className="flex-shrink-0 border-t border-border-color bg-surface px-4 md:px-6 py-4">
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-small text-text-secondary">Ready to generate your document. Complete payment to unlock.</p>
+                  <button
+                    onClick={handlePayment}
+                    className="px-6 py-3 bg-navy text-bg text-[14px] font-semibold rounded-lg hover:opacity-90 transition-colors whitespace-nowrap"
+                  >
+                    Pay {SERVICES.find(s => s.id === selectedService)?.price} &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="flex gap-3 items-end p-4 md:p-6 pt-3">
               <textarea
                 ref={textareaRef}
@@ -505,9 +633,9 @@ export default function StartPage() {
                 onKeyDown={handleKeyDown}
                 placeholder={t("placeholder")}
                 rows={1}
-                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length)}
+                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid")}
                 className="flex-1 px-4 py-3 bg-bg border border-border-color rounded-lg text-text-primary text-body placeholder:text-text-secondary/50 focus:outline-none focus:border-navy transition-colors resize-none min-h-[44px]"
-                style={{ opacity: showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) ? 0.4 : 1, maxHeight: "160px", overflowY: "auto" }}
+                style={{ opacity: showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid") ? 0.4 : 1, maxHeight: "160px", overflowY: "auto" }}
               />
 
               <input
@@ -520,7 +648,7 @@ export default function StartPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length)}
+                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid")}
                 className="p-3 text-navy hover:opacity-70 transition-colors min-h-[44px] flex items-center disabled:opacity-30"
                 aria-label="Attach file"
               >
@@ -531,7 +659,7 @@ export default function StartPage() {
 
               <button
                 type="submit"
-                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || isLoading || (!input.trim() && !attachedFile)}
+                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid") || isLoading || (!input.trim() && !attachedFile)}
                 className="px-5 py-3 bg-navy text-bg text-[14px] font-semibold tracking-[0.04em] rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
