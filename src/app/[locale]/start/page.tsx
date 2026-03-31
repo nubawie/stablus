@@ -68,6 +68,15 @@ function GuideHint({ text }: { text: string }) {
   );
 }
 
+const DOCUMENT_ACTIONS = [
+  { id: "regulatory", label: "Map to regulation requirements", description: "Gap analysis against CBUAE, VARA, DFSA, or FSRA", price: "AED 2,500", amount: 2500 },
+  { id: "architecture", label: "Generate architecture diagrams", description: "Full system architecture blueprint with ASCII diagrams", price: "AED 3,500", amount: 3500 },
+  { id: "prd", label: "Turn into a full PRD", description: "Complete Product Requirements Document", price: "AED 2,500", amount: 2500 },
+  { id: "audit", label: "Audit readiness check", description: "Checklist mapped to your target regulator", price: "AED 1,800", amount: 1800 },
+  { id: "business", label: "Build a business case", description: "Board-ready business case document", price: "AED 4,500", amount: 4500 },
+  { id: "delivery", label: "Create project delivery pack", description: "Charter, RAID log, governance and delivery plan", price: "AED 2,000", amount: 2000 },
+];
+
 const SERVICES = [
   { id: "regulatory", label: "Regulatory Readiness Report", price: "AED 2,500", time: "2 hrs", amount: 2500 },
   { id: "architecture", label: "System Architecture Blueprint", price: "AED 3,500", time: "4 hrs", amount: 3500 },
@@ -136,6 +145,9 @@ export default function StartPage() {
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "pending" | "paid">("idle");
   const [showPayButton, setShowPayButton] = useState(false);
   const [guideStep, setGuideStep] = useState(0);
+  const [flowType, setFlowType] = useState<"select" | "guided" | "document">("select");
+  const [documentSummaryDone, setDocumentSummaryDone] = useState(false);
+  const [documentAction, setDocumentAction] = useState("");
   const [serviceStep, setServiceStep] = useState(0);
   const [serviceAnswers, setServiceAnswers] = useState<Record<string, string>>({});
   const [checked1, setChecked1] = useState(false);
@@ -217,6 +229,40 @@ export default function StartPage() {
         previewUrl: isImage ? URL.createObjectURL(file) : undefined,
       });
       setUploadProgress(false);
+
+      if (flowType === "document" && !documentSummaryDone) {
+        setTimeout(() => {
+          const fileMsg: Message = { role: "user", content: `[Document uploaded for analysis]` };
+          const newMsgs = [...messages, fileMsg];
+          setMessages(newMsgs);
+          setIsLoading(true);
+          fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messages: newMsgs,
+              regulation: "",
+              orgType: "",
+              role: "",
+              selectedService: "document-analysis",
+              serviceAnswers: {},
+              file: { name: file.name, type: file.type, base64 },
+              documentMode: true,
+            }),
+          })
+            .then((r) => r.json())
+            .then((data) => {
+              if (data.message) {
+                setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
+                setDocumentSummaryDone(true);
+              }
+            })
+            .catch(() => {
+              setMessages((prev) => [...prev, { role: "assistant", content: "I had trouble reading that file. Please try again." }]);
+            })
+            .finally(() => setIsLoading(false));
+        }, 300);
+      }
     };
     reader.readAsDataURL(file);
 
@@ -491,6 +537,28 @@ export default function StartPage() {
             className="flex-1 overflow-y-auto p-6 md:p-8 space-y-5"
             style={{ overscrollBehavior: "contain" }}
           >
+            {flowType === "select" && !showConsent && emailSubmitted && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex flex-col gap-4 pt-4">
+                <p className="text-small font-medium text-text-secondary text-center">How would you like to start?</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button type="button" onClick={() => { setFlowType("guided"); setGuideStep(0); }} className="text-left p-5 border-2 border-border-color rounded-xl hover:border-navy transition-colors bg-surface group">
+                    <div className="w-8 h-8 rounded-lg bg-navy/10 flex items-center justify-center mb-3 group-hover:bg-navy/20 transition-colors">
+                      <svg className="w-4 h-4 text-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    </div>
+                    <p className="font-semibold text-navy mb-1">I know what I need</p>
+                    <p className="text-small text-text-secondary">Answer a few questions and get your document generated in hours</p>
+                  </button>
+                  <button type="button" onClick={() => { setFlowType("document"); }} className="text-left p-5 border-2 border-border-color rounded-xl hover:border-navy transition-colors bg-surface group">
+                    <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center mb-3 group-hover:bg-gold/20 transition-colors">
+                      <svg className="w-4 h-4 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                    </div>
+                    <p className="font-semibold text-navy mb-1">I have a document</p>
+                    <p className="text-small text-text-secondary">Drop your file and get an instant analysis — free. Then choose what to do with it</p>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
             {messages.map((msg, i) => (
               <motion.div
                 key={i}
@@ -532,7 +600,50 @@ export default function StartPage() {
               </motion.div>
             ))}
 
-            {intakeStep === 3 && !selectedService && (
+            {flowType === "document" && !documentSummaryDone && !showConsent && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
+                <div className="max-w-[90%] bg-surface border-2 border-dashed border-border-color rounded-2xl px-6 py-8 text-center">
+                  <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-5 h-5 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                  </div>
+                  <p className="font-semibold text-navy mb-1">Upload your document</p>
+                  <p className="text-small text-text-secondary mb-4">PDF, Word, Excel, PowerPoint, or image — up to 10MB</p>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="px-5 py-2.5 bg-navy text-white text-small font-semibold rounded-lg hover:opacity-90 transition-colors">
+                    Choose file
+                  </button>
+                  <p className="text-[11px] text-text-secondary mt-3">Your document is processed in memory only. Nothing is stored.</p>
+                </div>
+              </motion.div>
+            )}
+
+            {flowType === "document" && documentSummaryDone && !documentAction && !showConsent && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
+                <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
+                  <p className="text-small font-medium text-text-secondary mb-3">What would you like to do with this document?</p>
+                  <div className="flex flex-col gap-2">
+                    {DOCUMENT_ACTIONS.map((action) => (
+                      <button key={action.id} type="button" onClick={() => {
+                        setDocumentAction(action.id);
+                        setSelectedService(action.id);
+                        setShowPayButton(true);
+                        const msg: Message = { role: "user", content: action.label };
+                        setMessages((prev) => [...prev, msg]);
+                      }} className="text-left px-4 py-3 border border-border-color rounded-lg hover:border-navy transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-body font-medium text-text-primary">{action.label}</p>
+                            <p className="text-small text-text-secondary">{action.description}</p>
+                          </div>
+                          <span className="text-small font-semibold text-gold ml-4 whitespace-nowrap">{action.price}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {flowType === "guided" && intakeStep === 3 && !selectedService && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
                 <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
                   <GuideHint text="Choose the document you need — each is tailored to your situation" />
@@ -557,7 +668,7 @@ export default function StartPage() {
               </motion.div>
             )}
 
-            {intakeStep === 3 && selectedService && serviceStep < SERVICE_FLOWS[selectedService].length && (
+            {flowType === "guided" && intakeStep === 3 && selectedService && serviceStep < (SERVICE_FLOWS[selectedService]?.length || 0) && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
                 <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
                   <GuideHint text="Select the option that best describes your situation" />
@@ -643,7 +754,7 @@ export default function StartPage() {
               </div>
             )}
 
-            {intakeStep < 3 && !showConsent && (
+            {flowType === "guided" && intakeStep < 3 && !showConsent && (
               <div className="px-4 md:px-6 py-4 border-b border-border-color ring-2 ring-gold/40 ring-inset relative">
                 {intakeStep === 0 && (
                   <div>
@@ -707,9 +818,9 @@ export default function StartPage() {
                 onKeyDown={handleKeyDown}
                 placeholder={paymentStatus === "paid" ? "Type 'generate the document' to receive your full report..." : t("placeholder")}
                 rows={1}
-                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid")}
+                disabled={showConsent || (flowType === "guided" && intakeStep < 3) || (flowType === "document" && !documentSummaryDone) || (selectedService !== "" && selectedService !== "document-analysis" && serviceStep < (SERVICE_FLOWS[selectedService]?.length || 0)) || (showPayButton && paymentStatus !== "paid")}
                 className="flex-1 px-4 py-3 bg-bg border border-border-color rounded-lg text-text-primary text-body placeholder:text-text-secondary/50 focus:outline-none focus:border-navy transition-colors resize-none min-h-[44px]"
-                style={{ opacity: showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid") ? 0.4 : 1, maxHeight: "160px", overflowY: "auto" }}
+                style={{ opacity: showConsent || (flowType === "guided" && intakeStep < 3) || (flowType === "document" && !documentSummaryDone) || (selectedService !== "" && selectedService !== "document-analysis" && serviceStep < (SERVICE_FLOWS[selectedService]?.length || 0)) || (showPayButton && paymentStatus !== "paid") ? 0.4 : 1, maxHeight: "160px", overflowY: "auto" }}
               />
 
               <input
@@ -722,7 +833,7 @@ export default function StartPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid")}
+                disabled={showConsent || (flowType === "guided" && intakeStep < 3) || (flowType === "document" && !documentSummaryDone) || (selectedService !== "" && selectedService !== "document-analysis" && serviceStep < (SERVICE_FLOWS[selectedService]?.length || 0)) || (showPayButton && paymentStatus !== "paid")}
                 className="p-3 text-navy hover:opacity-70 transition-colors min-h-[44px] flex items-center disabled:opacity-30"
                 aria-label="Attach file"
               >
@@ -733,7 +844,7 @@ export default function StartPage() {
 
               <button
                 type="submit"
-                disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid") || isLoading || (!input.trim() && !attachedFile)}
+                disabled={showConsent || (flowType === "guided" && intakeStep < 3) || (flowType === "document" && !documentSummaryDone) || (selectedService !== "" && selectedService !== "document-analysis" && serviceStep < (SERVICE_FLOWS[selectedService]?.length || 0)) || (showPayButton && paymentStatus !== "paid") || isLoading || (!input.trim() && !attachedFile)}
                 className="px-5 py-3 bg-navy text-bg text-[14px] font-semibold tracking-[0.04em] rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

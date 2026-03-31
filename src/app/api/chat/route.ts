@@ -61,7 +61,7 @@ type ContentBlock =
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { messages, file, regulation, orgType, role: userRole, selectedService, serviceAnswers } = body;
+    const { messages, file, regulation, orgType, role: userRole, selectedService, serviceAnswers, documentMode } = body;
 
     const claudeMessages: Array<{
       role: "user" | "assistant";
@@ -161,7 +161,9 @@ export async function POST(req: NextRequest) {
           name: "web_search",
         },
       ],
-      system: SYSTEM_PROMPT + (selectedService ? `\n\nCLIENT INTAKE DATA:\nRegulation: ${regulation || "not specified"}\nOrganisation type: ${orgType || "not specified"}\nUser role: ${userRole || "not specified"}\nSelected deliverable: ${selectedService}\nAnswers to intake questions: ${JSON.stringify(serviceAnswers || {})}.\n\nThe client has completed all intake steps. Use this data as the foundation for your conversation and document. Do not repeat these questions.` : ""),
+      system: documentMode
+        ? SYSTEM_PROMPT + `\n\nDOCUMENT ANALYSIS MODE:\nThe user has uploaded a document for analysis. Your task is:\n1. Identify what this document is (type, purpose, scope)\n2. Summarise its key contents in 3-5 concise sentences\n3. Identify which UAE/GCC regulatory framework(s) it relates to or should be mapped against\n4. List 3-5 specific gaps, weaknesses, or missing elements a compliance professional would notice\n5. End with: "I can help you take this further. Choose what you would like me to do with it from the options below."\nKeep your response under 200 words. Do not ask questions. Do not recommend contacting anyone. Be direct and expert.`
+        : SYSTEM_PROMPT + (selectedService && selectedService !== "document-analysis" ? `\n\nCLIENT INTAKE DATA:\nRegulation: ${regulation || "not specified"}\nOrganisation type: ${orgType || "not specified"}\nUser role: ${userRole || "not specified"}\nSelected deliverable: ${selectedService}\nAnswers to intake questions: ${JSON.stringify(serviceAnswers || {})}.\n\nThe client has completed all intake steps. Use this data as the foundation for your conversation and document. Do not repeat these questions.` : ""),
       messages: claudeMessages,
     });
 
