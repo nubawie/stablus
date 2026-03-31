@@ -47,7 +47,7 @@ function GuideDots({ step }: { step: number }) {
     <div className="flex items-center justify-center gap-2 py-3 border-b border-border-color bg-surface">
       {GUIDE_STEPS.map((label, i) => (
         <div key={i} title={label} className="relative group">
-          <div className={`w-2 h-2 rounded-full transition-all duration-300 ${i < step ? "bg-navy" : i === step ? "bg-gold w-3 h-3 ring-2 ring-gold/30" : "bg-border-color"}`} />
+          <div className={`rounded-full transition-all duration-300 ${i < step ? "w-2 h-2 bg-navy ring-1 ring-navy/30" : i === step ? "w-3 h-3 bg-gold ring-2 ring-gold/30" : "w-2 h-2 bg-border-color"}`} />
           <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-navy text-white text-[10px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
             {label}
           </div>
@@ -426,12 +426,12 @@ export default function StartPage() {
               onChange={(e) => setUserEmail(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && userEmail.includes("@")) { setEmailSubmitted(true); sessionStorage.setItem("stablus-email", userEmail); } }}
               placeholder="you@company.com"
-              style={{ width: "100%", padding: "12px 14px", borderRadius: "8px", border: "1px solid var(--border)", backgroundColor: "var(--bg)", color: "var(--text-primary)", fontSize: "14px", fontFamily: "Inter, sans-serif", marginBottom: "16px", boxSizing: "border-box", outline: "none" }}
+              style={{ width: "100%", padding: "12px 14px", borderRadius: "8px", border: "1px solid var(--border)", backgroundColor: "var(--bg)", color: "var(--text-primary)", fontSize: "16px", fontFamily: "Inter, sans-serif", marginBottom: "16px", boxSizing: "border-box", outline: "none" }}
             />
             <button
               onClick={() => { if (userEmail.includes("@")) { setEmailSubmitted(true); sessionStorage.setItem("stablus-email", userEmail); } }}
               disabled={!userEmail.includes("@")}
-              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: userEmail.includes("@") ? "var(--navy)" : "var(--border)", color: userEmail.includes("@") ? "#ffffff" : "#666666", fontSize: "14px", fontWeight: 600, cursor: userEmail.includes("@") ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif", opacity: 1 }}
+              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: userEmail.includes("@") ? "var(--navy)" : "var(--border)", color: userEmail.includes("@") ? "#ffffff" : "#888888", fontSize: "14px", fontWeight: 600, cursor: userEmail.includes("@") ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif", opacity: 1 }}
             >
               Continue
             </button>
@@ -546,8 +546,8 @@ export default function StartPage() {
                 </motion.div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button type="button" onClick={() => { setFlowType("guided"); setGuideStep(0); }} className="text-left p-5 border-2 border-border-color rounded-xl hover:border-navy transition-colors bg-surface group">
-                    <div className="w-8 h-8 rounded-lg bg-navy/10 flex items-center justify-center mb-3 group-hover:bg-navy/20 transition-colors">
-                      <svg className="w-4 h-4 text-navy" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center mb-3 group-hover:bg-gold/20 transition-colors">
+                      <svg className="w-4 h-4 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                     </div>
                     <p className="font-semibold text-navy mb-1">I know what I need</p>
                     <p className="text-small text-text-secondary">Answer a few questions and get your document generated in hours</p>
@@ -664,7 +664,7 @@ export default function StartPage() {
             {flowType === "guided" && intakeStep === 3 && !selectedService && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
                 <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
-                  <GuideHint text="Choose the document you need — each is tailored to your situation" />
+                  <GuideHint text="Click to choose your deliverable" />
                   <p className="text-small font-medium text-text-secondary mb-3">Which deliverable do you need?</p>
                   <div className="flex flex-col gap-2">
                     {SERVICES.map((svc) => (
@@ -677,7 +677,7 @@ export default function StartPage() {
                         const msg: Message = { role: "user", content: svc.label };
                         setMessages((prev) => [...prev, msg]);
                       }} className="text-left px-4 py-3 border border-border-color rounded-lg hover:border-navy transition-colors">
-                        <span className="text-body font-medium text-text-primary">{svc.label}</span>
+                        <span className="text-small font-medium text-text-primary">{svc.label}</span>
                         <span className="text-small text-text-secondary ml-2">{svc.price} · {svc.time}</span>
                       </button>
                     ))}
@@ -689,7 +689,7 @@ export default function StartPage() {
             {flowType === "guided" && intakeStep === 3 && selectedService && serviceStep < (SERVICE_FLOWS[selectedService]?.length || 0) && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
                 <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
-                  <GuideHint text="Select the option that best describes your situation" />
+                  <GuideHint text="Click to answer this question" />
                   <p className="text-small font-medium text-text-secondary mb-3">{SERVICE_FLOWS[selectedService][serviceStep].question}</p>
                   <div className="flex flex-wrap gap-2">
                     {SERVICE_FLOWS[selectedService][serviceStep].options.map((opt) => (
@@ -773,14 +773,14 @@ export default function StartPage() {
             )}
 
             {flowType === "guided" && intakeStep < 3 && !showConsent && (
-              <div className="px-4 md:px-6 py-4 border-b border-border-color ring-2 ring-gold/40 ring-inset relative">
+              <div className="px-4 md:px-6 py-4 border-b border-border-color relative">
                 {intakeStep === 0 && (
                   <div>
                     <GuideHint text="Click to select your target regulation" />
                     <p className="text-small font-medium text-text-secondary mb-3">Which regulation are you targeting?</p>
                     <div className="flex flex-wrap gap-2">
                       {["CBUAE","VARA","FSRA","DFSA","SCA","Not sure"].map((r) => (
-                        <button key={r} type="button" onClick={() => { setRegulation(r); setIntakeStep(1); setGuideStep(1); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{r}</button>
+                        <button key={r} type="button" onClick={() => { setRegulation(r); setIntakeStep(1); setGuideStep(1); }} className={`px-3 py-1.5 text-small border rounded transition-colors ${regulation === r ? "border-navy bg-navy text-bg" : "border-border-color hover:border-navy"}`}>{r}</button>
                       ))}
                     </div>
                   </div>
@@ -791,7 +791,7 @@ export default function StartPage() {
                     <p className="text-small font-medium text-text-secondary mb-3">What type of organization are you?</p>
                     <div className="flex flex-wrap gap-2">
                       {["Bank","Fintech","Payment Institution","IT Company","Consultancy","Other"].map((o) => (
-                        <button key={o} type="button" onClick={() => { setOrgType(o); setIntakeStep(2); setGuideStep(2); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{o}</button>
+                        <button key={o} type="button" onClick={() => { setOrgType(o); setIntakeStep(2); setGuideStep(2); }} className={`px-3 py-1.5 text-small border rounded transition-colors ${orgType === o ? "border-navy bg-navy text-bg" : "border-border-color hover:border-navy"}`}>{o}</button>
                       ))}
                     </div>
                   </div>
@@ -817,7 +817,7 @@ export default function StartPage() {
                   <p className="text-small text-text-secondary">Ready to generate your document. Complete payment to unlock.</p>
                   <button
                     onClick={handlePayment}
-                    className="px-6 py-3 bg-navy text-bg text-[14px] font-semibold rounded-lg hover:opacity-90 transition-colors whitespace-nowrap"
+                    className="px-6 py-3 bg-navy text-bg text-[14px] font-semibold rounded hover:opacity-90 transition-colors whitespace-nowrap"
                   >
                     Pay {SERVICES.find(s => s.id === selectedService)?.price} &rarr;
                   </button>
@@ -863,8 +863,9 @@ export default function StartPage() {
 
               <button
                 type="submit"
+                aria-label="Send message"
                 disabled={showConsent || (flowType === "guided" && intakeStep < 3) || (flowType === "document" && !documentSummaryDone) || (selectedService !== "" && selectedService !== "document-analysis" && serviceStep < (SERVICE_FLOWS[selectedService]?.length || 0)) || (showPayButton && paymentStatus !== "paid") || isLoading || (!input.trim() && !attachedFile)}
-                className="px-5 py-3 bg-navy text-bg text-[14px] font-semibold tracking-[0.04em] rounded-lg hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center"
+                className="px-5 py-3 bg-navy text-bg text-[14px] font-semibold tracking-[0.04em] rounded hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
