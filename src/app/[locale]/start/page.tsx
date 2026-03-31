@@ -29,7 +29,7 @@ const ACCEPTED_TYPES =
 
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
-  content: "Welcome to Stablus. I\u2019m here to help you get a professional advisory document for your regulated financial initiative. Once you\u2019ve told me a bit about yourself, I\u2019ll help you select the right deliverable.",
+  content: "__hidden__",
 };
 
 const GUIDE_STEPS = [
@@ -208,21 +208,23 @@ export default function StartPage() {
   }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    if (file.size > MAX_FILE_SIZE) {
-      alert("File must be under 10MB.");
+    const oversized = files.filter(f => f.size > MAX_FILE_SIZE);
+    if (oversized.length > 0) {
+      alert(`These files exceed 10MB: ${oversized.map(f => f.name).join(", ")}`);
       return;
     }
 
+    const file = files[0];
     setUploadProgress(true);
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = (reader.result as string).split(",")[1];
       const isImage = file.type.startsWith("image/");
       setAttachedFile({
-        name: file.name,
+        name: files.length > 1 ? `${files.length} files — ${files.map(f => f.name).join(", ")}` : file.name,
         type: file.type,
         base64,
         size: file.size,
@@ -429,7 +431,7 @@ export default function StartPage() {
             <button
               onClick={() => { if (userEmail.includes("@")) { setEmailSubmitted(true); sessionStorage.setItem("stablus-email", userEmail); } }}
               disabled={!userEmail.includes("@")}
-              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: userEmail.includes("@") ? "var(--navy)" : "var(--border)", color: userEmail.includes("@") ? "#ffffff" : "var(--text-secondary)", fontSize: "14px", fontWeight: 600, cursor: userEmail.includes("@") ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif", opacity: userEmail.includes("@") ? 1 : 0.5 }}
+              style={{ width: "100%", padding: "14px", borderRadius: "8px", border: "none", backgroundColor: userEmail.includes("@") ? "var(--navy)" : "var(--border)", color: userEmail.includes("@") ? "#ffffff" : "#666666", fontSize: "14px", fontWeight: 600, cursor: userEmail.includes("@") ? "pointer" : "not-allowed", fontFamily: "Inter, sans-serif", opacity: 1 }}
             >
               Continue
             </button>
@@ -539,7 +541,9 @@ export default function StartPage() {
           >
             {flowType === "select" && !showConsent && emailSubmitted && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex flex-col gap-4 pt-4">
-                <p className="text-small font-medium text-text-secondary text-center">How would you like to start?</p>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-3.5 mb-2 max-w-[85%]">
+                  <p className="text-body text-text-primary leading-relaxed">Welcome to Stablus. I&apos;m here to help you get a professional advisory document for your regulated financial initiative. How would you like to start?</p>
+                </motion.div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button type="button" onClick={() => { setFlowType("guided"); setGuideStep(0); }} className="text-left p-5 border-2 border-border-color rounded-xl hover:border-navy transition-colors bg-surface group">
                     <div className="w-8 h-8 rounded-lg bg-navy/10 flex items-center justify-center mb-3 group-hover:bg-navy/20 transition-colors">
@@ -560,7 +564,7 @@ export default function StartPage() {
             )}
 
             {messages.map((msg, i) => (
-              <motion.div
+              msg.content === "__hidden__" ? null : <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -608,7 +612,7 @@ export default function StartPage() {
                   </div>
                   <p className="font-semibold text-navy mb-1">Upload your document</p>
                   <p className="text-small text-text-secondary mb-4">PDF, Word, Excel, PowerPoint, or image — up to 10MB</p>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="px-5 py-2.5 bg-navy text-white text-small font-semibold rounded-lg hover:opacity-90 transition-colors">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="px-5 py-2.5 text-small font-semibold rounded-lg hover:opacity-90 transition-colors" style={{ backgroundColor: "var(--navy)", color: "#ffffff" }}>
                     Choose file
                   </button>
                   <p className="text-[11px] text-text-secondary mt-3">Your document is processed in memory only. Nothing is stored.</p>
@@ -828,6 +832,7 @@ export default function StartPage() {
                 type="file"
                 accept={ACCEPTED_TYPES}
                 onChange={handleFileSelect}
+                multiple
                 className="hidden"
               />
               <button
