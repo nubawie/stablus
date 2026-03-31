@@ -32,6 +32,42 @@ const INITIAL_MESSAGE: Message = {
   content: "Welcome to Stablus. I\u2019m here to help you get a professional advisory document for your regulated financial initiative. Once you\u2019ve told me a bit about yourself, I\u2019ll help you select the right deliverable.",
 };
 
+const GUIDE_STEPS = [
+  "Select your target regulation",
+  "Select your organisation type",
+  "Select your role",
+  "Choose your deliverable",
+  "Answer a few quick questions",
+  "Complete payment to unlock",
+  "Type your message to generate",
+];
+
+function GuideDots({ step }: { step: number }) {
+  return (
+    <div className="flex items-center justify-center gap-2 py-3 border-b border-border-color bg-surface">
+      {GUIDE_STEPS.map((label, i) => (
+        <div key={i} title={label} className="relative group">
+          <div className={`w-2 h-2 rounded-full transition-all duration-300 ${i < step ? "bg-navy" : i === step ? "bg-gold w-3 h-3 ring-2 ring-gold/30" : "bg-border-color"}`} />
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-navy text-white text-[10px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+            {label}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function GuideHint({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-2 px-4 py-2 bg-gold/10 border border-gold/30 rounded-lg mx-4 mb-2 animate-pulse">
+      <svg className="w-4 h-4 text-gold flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+      </svg>
+      <span className="text-small font-medium text-gold">{text}</span>
+    </div>
+  );
+}
+
 const SERVICES = [
   { id: "regulatory", label: "Regulatory Readiness Report", price: "AED 2,500", time: "2 hrs", amount: 2500 },
   { id: "architecture", label: "System Architecture Blueprint", price: "AED 3,500", time: "4 hrs", amount: 3500 },
@@ -99,6 +135,7 @@ export default function StartPage() {
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "pending" | "paid">("idle");
   const [showPayButton, setShowPayButton] = useState(false);
+  const [guideStep, setGuideStep] = useState(0);
   const [serviceStep, setServiceStep] = useState(0);
   const [serviceAnswers, setServiceAnswers] = useState<Record<string, string>>({});
   const [checked1, setChecked1] = useState(false);
@@ -135,6 +172,7 @@ export default function StartPage() {
     if (payment === "success") {
       setPaymentStatus("paid");
       setShowPayButton(false);
+      setGuideStep(6);
       window.history.replaceState({}, "", window.location.pathname);
     }
     if (payment === "cancelled") {
@@ -446,6 +484,7 @@ export default function StartPage() {
 
         {/* Right panel: chat with fixed layout */}
         <div className="flex-1 flex flex-col min-h-0 bg-bg">
+          <GuideDots step={guideStep} />
           {/* Messages area: scrolls internally only */}
           <div
             ref={messagesContainerRef}
@@ -496,11 +535,13 @@ export default function StartPage() {
             {intakeStep === 3 && !selectedService && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
                 <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
+                  <GuideHint text="Choose the document you need — each is tailored to your situation" />
                   <p className="text-small font-medium text-text-secondary mb-3">Which deliverable do you need?</p>
                   <div className="flex flex-col gap-2">
                     {SERVICES.map((svc) => (
                       <button key={svc.id} type="button" onClick={() => {
                         setSelectedService(svc.id);
+                        setGuideStep(4);
                         setServiceStep(0);
                         setShowPayButton(false);
                         setPaymentStatus("idle");
@@ -519,6 +560,7 @@ export default function StartPage() {
             {intakeStep === 3 && selectedService && serviceStep < SERVICE_FLOWS[selectedService].length && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex justify-start">
                 <div className="max-w-[90%] bg-surface border border-border-color rounded-2xl rounded-bl-md px-5 py-4">
+                  <GuideHint text="Select the option that best describes your situation" />
                   <p className="text-small font-medium text-text-secondary mb-3">{SERVICE_FLOWS[selectedService][serviceStep].question}</p>
                   <div className="flex flex-wrap gap-2">
                     {SERVICE_FLOWS[selectedService][serviceStep].options.map((opt) => (
@@ -530,6 +572,7 @@ export default function StartPage() {
                         const newMsg: Message = { role: "user", content: opt };
                         const newMessages = [...messages, newMsg];
                         setMessages(newMessages);
+                        setGuideStep(5);
                         if (newStep >= SERVICE_FLOWS[selectedService].length) {
                           setTimeout(() => triggerAIResponse(newMessages), 300);
                         }
@@ -601,33 +644,36 @@ export default function StartPage() {
             )}
 
             {intakeStep < 3 && !showConsent && (
-              <div className="px-4 md:px-6 py-4 border-b border-border-color">
+              <div className="px-4 md:px-6 py-4 border-b border-border-color ring-2 ring-gold/40 ring-inset relative">
                 {intakeStep === 0 && (
                   <div>
+                    <GuideHint text="Click to select your target regulation" />
                     <p className="text-small font-medium text-text-secondary mb-3">Which regulation are you targeting?</p>
                     <div className="flex flex-wrap gap-2">
                       {["CBUAE","VARA","FSRA","DFSA","SCA","Not sure"].map((r) => (
-                        <button key={r} type="button" onClick={() => { setRegulation(r); setIntakeStep(1); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{r}</button>
+                        <button key={r} type="button" onClick={() => { setRegulation(r); setIntakeStep(1); setGuideStep(1); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{r}</button>
                       ))}
                     </div>
                   </div>
                 )}
                 {intakeStep === 1 && (
                   <div>
+                    <GuideHint text="Click to select your organisation type" />
                     <p className="text-small font-medium text-text-secondary mb-3">What type of organization are you?</p>
                     <div className="flex flex-wrap gap-2">
                       {["Bank","Fintech","Payment Institution","IT Company","Consultancy","Other"].map((o) => (
-                        <button key={o} type="button" onClick={() => { setOrgType(o); setIntakeStep(2); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{o}</button>
+                        <button key={o} type="button" onClick={() => { setOrgType(o); setIntakeStep(2); setGuideStep(2); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{o}</button>
                       ))}
                     </div>
                   </div>
                 )}
                 {intakeStep === 2 && (
                   <div>
+                    <GuideHint text="Click to select your role" />
                     <p className="text-small font-medium text-text-secondary mb-3">What is your role?</p>
                     <div className="flex flex-wrap gap-2">
                       {["Compliance","Legal","Technology","C-Suite","Consultant","Other"].map((rl) => (
-                        <button key={rl} type="button" onClick={() => { setRole(rl); setIntakeStep(3); fetch("/api/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({regulation,orgType,role:rl,query:"",status:"started"})}); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{rl}</button>
+                        <button key={rl} type="button" onClick={() => { setRole(rl); setIntakeStep(3); setGuideStep(3); fetch("/api/track",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({regulation,orgType,role:rl,query:"",status:"started"})}); }} className="px-3 py-1.5 text-small border border-border-color rounded hover:border-navy transition-colors">{rl}</button>
                       ))}
                     </div>
                   </div>
@@ -638,6 +684,7 @@ export default function StartPage() {
             {showPayButton && paymentStatus !== "paid" && selectedService && (
               <div className="flex-shrink-0 border-t border-border-color bg-surface px-4 md:px-6 py-4">
                 <div className="flex items-center justify-between gap-4">
+                  <GuideHint text="Payment unlocks document generation — you will not be charged again for this session" />
                   <p className="text-small text-text-secondary">Ready to generate your document. Complete payment to unlock.</p>
                   <button
                     onClick={handlePayment}
@@ -658,7 +705,7 @@ export default function StartPage() {
                   handleTextareaInput();
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder={t("placeholder")}
+                placeholder={paymentStatus === "paid" ? "Type 'generate the document' to receive your full report..." : t("placeholder")}
                 rows={1}
                 disabled={showConsent || intakeStep < 3 || (selectedService !== "" && serviceStep < SERVICE_FLOWS[selectedService]?.length) || (showPayButton && paymentStatus !== "paid")}
                 className="flex-1 px-4 py-3 bg-bg border border-border-color rounded-lg text-text-primary text-body placeholder:text-text-secondary/50 focus:outline-none focus:border-navy transition-colors resize-none min-h-[44px]"
