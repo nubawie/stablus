@@ -612,7 +612,21 @@ export default function StartPage() {
                   </div>
                   <p className="font-semibold text-navy mb-1">Upload your document</p>
                   <p className="text-small text-text-secondary mb-4">PDF, Word, Excel, PowerPoint, or image — up to 10MB</p>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="px-5 py-2.5 text-small font-semibold rounded-lg hover:opacity-90 transition-colors" style={{ backgroundColor: "var(--navy)", color: "#ffffff" }}>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "#0a1628",
+                      color: "#ffffff",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      borderRadius: "8px",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      cursor: "pointer",
+                      fontFamily: "Inter, sans-serif",
+                    }}
+                  >
                     Choose file
                   </button>
                   <p className="text-[11px] text-text-secondary mt-3">Your document is processed in memory only. Nothing is stored.</p>
