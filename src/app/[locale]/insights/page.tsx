@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { motion } from "framer-motion";
+import { insightArticles } from "@/data/insights-articles";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -301,6 +302,51 @@ export default function InsightsPage() {
               </div>
             </motion.article>
           ))}
+        </div>
+
+        <div className="mt-20 mb-4">
+          <motion.p variants={fadeUp} className="text-label font-semibold text-gold uppercase mb-4">
+            Regulatory Guides
+          </motion.p>
+          <motion.h2 variants={fadeUp} className="font-serif text-h3-mobile md:text-h1-mobile font-bold text-navy mb-10">
+            {locale === "ar" ? "\u0623\u062f\u0644\u0629 \u0627\u0644\u062a\u0631\u062e\u064a\u0635 \u0627\u0644\u062a\u0646\u0638\u064a\u0645\u064a" : "Licensing and compliance guides for GCC financial institutions"}
+          </motion.h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {insightArticles.map((article) => (
+              <motion.div
+                key={article.slug}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeUp}
+                className="bg-surface rounded-lg border border-border-color shadow-sm p-6 hover:border-navy transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-3 text-small font-medium text-text-secondary">
+                  <span>{article.date}</span>
+                  <span className="w-1 h-1 rounded-full bg-gold" />
+                  <span>{article.readTime}</span>
+                </div>
+                <h3 className="font-serif text-[18px] font-bold text-navy mb-3 leading-snug">
+                  {locale === "ar" ? article.title.ar : article.title.en}
+                </h3>
+                <p className="text-small text-text-secondary mb-4 leading-relaxed">
+                  {locale === "ar" ? article.metaDescription.ar : article.metaDescription.en}
+                </p>
+                <div className="flex items-center gap-2 text-small text-gold mb-4">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{locale === "ar" ? article.regulationLastUpdated.ar : article.regulationLastUpdated.en}</span>
+                </div>
+                <Link
+                  href={`/${locale}/insights/${article.slug}`}
+                  className="inline-flex items-center text-small font-semibold text-navy hover:opacity-70 transition-colors"
+                >
+                  {locale === "ar" ? "\u0627\u0642\u0631\u0623 \u0627\u0644\u062f\u0644\u064a\u0644 \u2190" : "Read guide \u2192"}
+                </Link>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
