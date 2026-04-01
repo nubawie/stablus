@@ -181,13 +181,17 @@ export default function StartPage() {
     if (savedAnswers) { setServiceAnswers(JSON.parse(savedAnswers)); setServiceStep(SERVICE_FLOWS[savedService || ""]?.length || 0); }
     const savedMessages = sessionStorage.getItem("stablus-messages");
     if (savedMessages) { try { setMessages(JSON.parse(savedMessages)); } catch { /* ignore */ } }
+    const savedPaywall = sessionStorage.getItem("stablus-paywall");
+    if (savedPaywall === "true") { setShowPayButton(true); }
     if (payment === "success") {
       setPaymentStatus("paid");
       setShowPayButton(false);
+      sessionStorage.removeItem("stablus-paywall");
       setGuideStep(6);
       window.history.replaceState({}, "", window.location.pathname);
     }
     if (payment === "cancelled") {
+      setShowPayButton(true);
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -316,6 +320,7 @@ export default function StartPage() {
     if (!selectedService || !userEmail) return;
     sessionStorage.setItem("stablus-email", userEmail);
     sessionStorage.setItem("stablus-messages", JSON.stringify(messages));
+    sessionStorage.setItem("stablus-paywall", "true");
     sessionStorage.setItem("stablus-service", selectedService);
     sessionStorage.setItem("stablus-answers", JSON.stringify(serviceAnswers));
     sessionStorage.setItem("stablus-regulation", regulation);
